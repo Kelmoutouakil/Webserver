@@ -40,16 +40,22 @@ int CreationBindListen(void)
     if (bind(server_socket, (struct sockaddr*)&server_address, sizeof(server_address)) == -1) {
         std::cerr << errno << std::endl;
         close(server_socket);
-        return -1;
+        exit(-1);
     }
     if (listen(server_socket, 5) == -1) {
         std::cerr << "Error listening for connections" << std::endl;
         close(server_socket);
-        return -1;
+        exit(-1);
     }
     return server_socket;
 }
 
+int max_fd(std::vector<int> clients, int fd)
+{
+    if (clients.empty())
+        return fd + 1;
+    return std::max(*std::max_element(clients.begin(), clients.end()), fd) + 1;
+}
 
 int main() 
 {
@@ -68,8 +74,7 @@ int main()
             FD_SET(clients[i], &fdread);
             FD_SET(clients[i], &fdwrite);
         }
-        std::cout <<" FD_ISSET(fd, &fdread)"<< std::endl;
-        if (select(std::max(*std::max_element(clients.begin(), clients.end()), fd) + 1, &fdread, &fdwrite, NULL, NULL)< 0) 
+        if (select(max_fd(clients, fd), &fdread, &fdwrite, NULL, NULL) < 0) 
             exit(EXIT_FAILURE);
         std::cout << FD_ISSET(fd, &fdread)<< std::endl;
         if (FD_ISSET(fd, &fdread)) 
@@ -95,7 +100,7 @@ int main()
             else if (FD_ISSET(clients[i], &fdwrite))
                 clientInfos[clients[i]].handleRequest();
         }
-
+        usleep(1000000);
         // std::cout << "selet\n";
         // std::cout << "out selet\n";
         // for (size_t i = 0;i <  d.size();i++)

@@ -16,6 +16,6 @@
 #include <map>
 #include <algorithm>
 #define PORT 8080
-#define BUFFER_SIZE 10
+#define BUFFER_SIZE 500
 
 int countWords(const std::string& input);

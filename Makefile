@@ -1,10 +1,8 @@
 cc = c++
 NAME = web_server
-CPPFLAGS = -Wall -Wextra -Werror -fsanitize=address
+CPPFLAGS = -Wall -Wextra -Werror -fsanitize=address -g3
 OBJ = $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
-echo:
-	echo $(OBJ)
 all: $(NAME)
 
 $(NAME): $(OBJ)
