@@ -14,7 +14,7 @@
 #include <fstream>
 #include <unistd.h>
 #include <map>
-#include "Info.hpp"
+#include <algorithm>
 #define PORT 8080
 #define BUFFER_SIZE 10
 

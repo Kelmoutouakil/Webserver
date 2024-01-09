@@ -1,5 +1,5 @@
-#include "webServer.hpp"
-
+#include "WebServer.hpp"
+#include "Info.hpp"
 
 
 void getMethode(int fd, std::stringstream &line)
@@ -7,7 +7,6 @@ void getMethode(int fd, std::stringstream &line)
     std::string word;
     std::string content;
     std::string header;
-
   
     line >> word;
     std::cout << word << std::endl;
@@ -15,7 +14,7 @@ void getMethode(int fd, std::stringstream &line)
     while(std::getline(inFile, word))
         content += word + "\n";
     line >> word;
-    header = word + " 200 OK\nContent-Type: text/html\nContent-Length: " + std::to_string(content.size())  + "\n\n";
+    header = word + " 200 OK\nContent-Type: text/html\nTransfer-Encoding: chunked\n\n";
     write(fd, header.c_str() , header.length());
     write(fd, content.c_str(), content.length());
 }
@@ -51,18 +50,13 @@ int CreationBindListen(void)
     return server_socket;
 }
 
-void prepareSocketclient(int clinetfd)
-{
-
-}
 
 int main() 
 {
     std::map<int, Info> clientInfos;
+    std::vector<int> clients;
     int fd = CreationBindListen();
     fd_set fdread, fdwrite;
-    std::vector<int> clients;
-    
     std::cout << "Server is listening on port " << PORT << std::endl;
     while (true)
     {
@@ -74,9 +68,12 @@ int main()
             FD_SET(clients[i], &fdread);
             FD_SET(clients[i], &fdwrite);
         }
-        if (select(clients.size() + 1, &fdread, &fdwrite, NULL, NULL)< 0) 
+        std::cout <<" FD_ISSET(fd, &fdread)"<< std::endl;
+        if (select(std::max(*std::max_element(clients.begin(), clients.end()), fd) + 1, &fdread, &fdwrite, NULL, NULL)< 0) 
             exit(EXIT_FAILURE);
-        if (FD_ISSET(fd, &fdread)) {
+        std::cout << FD_ISSET(fd, &fdread)<< std::endl;
+        if (FD_ISSET(fd, &fdread)) 
+        {
             struct sockaddr_in client_address;
             socklen_t client_address_len = sizeof(client_address);
             std::cout << "WAITING ...\n";
@@ -87,20 +84,16 @@ int main()
                 continue;
             }
             clients.push_back(client_socket);
-            clientInfos[client_socket] = Info(client_socket);
+            clientInfos.insert(std::make_pair(client_socket, Info(client_socket)));
             FD_SET(client_socket, &fdread);
             FD_SET(client_socket, &fdwrite);
         }
-        while (size_t i = 0;i < clients.size(); i++)
+        for (size_t i = 0; i < clients.size(); i++)
         {
             if (FD_ISSET(clients[i], &fdread))
-            {
-
-            }
+                clientInfos[clients[i]].handleRequest();
             else if (FD_ISSET(clients[i], &fdwrite))
-            {
-
-            }
+                clientInfos[clients[i]].handleRequest();
         }
 
         // std::cout << "selet\n";
