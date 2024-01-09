@@ -1,18 +1,26 @@
-cc = c++
-NAME = web_server
-CPPFLAGS = -Wall -Wextra -Werror -fsanitize=address
-OBJ = $(patsubst %.cpp,%.o,$(wildcard *.cpp))
+CC = c++
+NAME = webserv
+CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g
 
-echo:
-	echo $(OBJ)
+SRC = $(wildcard *.cpp)
+HEADER =$(wildcard *.hpp)
+
+OBJ = $(SRC:.cpp=.o)
+
+
 all: $(NAME)
+$(NAME): $(OBJ) $(HEADER)
+	$(CC) $(CPPFLAGS) $(OBJ) -o $(NAME)
 
-$(NAME): $(OBJ)
-	c++ $(CPPFLAGS) $^ -o $@
+%.o:%.cpp
+	$(CC) $(CPPFLAGS) -c -o $@ $^
 
 clean:
-	rm -rf $(OBJ)
+	rm -f $(OBJ)
 
 fclean: clean
-	rm -rf $(NAME)
-re: fclean all
+	rm -f $(NAME)
+
+re: fclean all	
+
+.PHONY: clean fclean all
