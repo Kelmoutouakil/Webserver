@@ -1,10 +1,11 @@
-cc = c++
+CC = c++
 NAME = web_server
 CPPFLAGS = -Wall -Wextra -Werror -fsanitize=address -g3
-OBJ = $(patsubst %.cpp,%.o,$(wildcard *a.cpp))
+USER = $(shell whoami)
+OBJ = $(patsubst %.cpp,%.o,$(wildcard *$(USER).cpp))
 
 all: $(NAME)
-$(NAME): $(OBJ) $(HEADER)
+$(NAME): $(OBJ)
 	$(CC) $(CPPFLAGS) $(OBJ) -o $(NAME)
 
 %.o:%.cpp
