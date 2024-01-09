@@ -77,7 +77,24 @@ Info& Info::operator=(const Info &obj)
 
 void   Info::handleRequest()
 {
+    std::stringstream nB;
+    std::string n;
 
+    if (M_U_V[0] == "GET")
+    {
+        InFile.read(buffer, std::streamsize(BUFFER_SIZE));
+        if (!InFile)
+        {
+            std::cout << "error file accured\n";
+            exit(0);
+        }
+        nB << std::hex << InFile.gcount();
+        nB >> n;
+        buffer[InFile.gcount()] = 0;
+        std::string response(buffer);
+
+        write(fd, (n + response + "\n\r").c_str(), n.length() + response.length() + 2);
+    }
 }
 
 void   Info::readRequest()
@@ -100,6 +117,13 @@ void    Info::getMethode()
 {
     std::string header;
     std::string conType("Content-Type: text/html\n");
+
+    InFile.open(M_U_V[1]);
+    if(!InFile.is_open())
+    {
+        std::cout << "error opning file\n";
+        exit(0);
+    }
     header = M_U_V[2] + " 200 OK\n" + conType + "Transfer-Encoding: chunked\n\n";
     write(fd, header.c_str(), header.length());
 }
