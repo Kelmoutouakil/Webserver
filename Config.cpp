@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/01 09:36:08 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/10 10:27:10 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/10 11:54:08 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,10 +78,21 @@ std::string affect(std::vector<std::string>::iterator it,std::vector<std::string
             }
             return(ptr);
 }
+void Server::setupglobalroot(std::map<std::string,Location> v)
+{
+    std::map<std::string,Location>::iterator it = v.begin();
+    for(;it!= v.end();it++)
+    {
+        if(it->second.root == "")
+            it->second.root = this->root;
+    }
+    
+}
 Server  Config::fillServervect(int start, int end, std::string conf)
 {
     Server o;
-    conf = o.parslocation(conf);    
+    conf = o.parslocation(conf);
+ 
     std::stringstream serverBlock (conf.substr(start + 1, end - start - 1));
     std::vector<std::string> serverBlockLines;
     std::string word;
@@ -107,14 +118,25 @@ Server  Config::fillServervect(int start, int end, std::string conf)
                 o.listen = *it; 
         }
         if(*it =="root") 
+        {
             o.root = affect(it,serverBlockLines.end());
+            o.setupglobalroot(o.locations);
+        }
         if(*it == "server_name")
-            o.serverName = affect(it,serverBlockLines.end());
+        {
+            it++;
+            o.serverName.clear();
+            while(*it != ";" && it != serverBlockLines.end())
+            {
+                o.serverName.push_back(*it);
+                it++;
+            }
+        }
         if(*it == "client_body_timeout")
-            o.client_body_timeout = affect(it,serverBlockLines.end());
+            o.client_body_timeout = atoi(*(++it));
         if(*it == "client_max_body_size")
-            o.client_max_body_size = affect(it,serverBlockLines.end());
-           if(*it == "index")
+            o.client_max_body_size =atoi(*(++it));
+        if(*it == "index")
         {
             it++;
             o.index.clear();
@@ -132,14 +154,14 @@ Server  Config::fillServervect(int start, int end, std::string conf)
             else if(*it == "on")
                 o.autoindex = true;
         }
-        if(*it == "uploads")
-        {
-            it++;
-            if(*it == "off")
-                o.uploads= false;
-            else if(*it == "on")
-                o.uploads = true;
-        }
+        // if(*it == "uploads")
+        // {
+        //     it++;
+        //     if(*it == "off")
+        //         o.uploads= false;
+        //     else if(*it == "on")
+        //         o.uploads = true;
+        // }
         if(*it == "allow_methods")
         {
             it++;
@@ -152,15 +174,6 @@ Server  Config::fillServervect(int start, int end, std::string conf)
                 if(*it == "DELETE")
                     o.allow_methods[*it] = true;
                 it++;
-            }
-        }
-        if(*it == "return")
-        {
-            it++;
-            while(*(it)!= ";" &&  (it + 2) != serverBlockLines.end())
-            {
-                o.Return.insert(std::make_pair(atoi((*it).c_str()),*(it + 1)));
-                it+= 2;
             }
         }
     }

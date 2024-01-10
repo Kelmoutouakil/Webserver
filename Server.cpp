@@ -6,14 +6,14 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/08 13:53:46 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/10 10:35:52 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/10 11:46:16 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include"Server.hpp"
 #include<algorithm>
 #include<iterator>
-Location buildClass(std::string v)
+Location  Server::buildClass(std::string v)
 {
     Location o;
     std::stringstream ss(v);
@@ -51,14 +51,6 @@ Location buildClass(std::string v)
                 o.index.push_back(*it);
                 it++;
             }
-        }
-        if(*it == "autoindex")
-        {
-            it++;
-            if(*it == "off")
-                o.autoindex = false;
-            else if(*it == "on")
-                o.autoindex = true;
         }
         if(*it == "uploads")
         {
