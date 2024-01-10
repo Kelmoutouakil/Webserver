@@ -38,7 +38,7 @@ int main()
                
                 std::vector<std::string>::iterator ite = (*it).begin();
                 for(;ite != (*it).end();ite++)
-                    std::cout <<">"<< *ite<< "<"<< "\n";
+                    //std::coutut <<">"<< *ite<< "<"<< "\n";
             }
                 //  buildServers(*it);
         }

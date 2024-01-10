@@ -1,24 +1,29 @@
 #pragma once
 
 #include "WebServer.hpp" 
+#include "inFile.hpp"
 
 class Info
 {
+        bool rd;
+        bool wr;
+        std::vector<std::string> request;
         std::string root;
         std::string M_U_V[3];
-        std::ifstream InFile;
+        inFile InFile;
         std::ofstream OutFile;
-        std::vector<std::string> request;
-        char buffer[2];
+        char buffer[BUFFER_SIZE];
         Info& operator=(const Info &obj);
     public:
         int fd;
-        Info(const Info &obj);
         Info();
         ~Info();
+        Info(const Info &obj);
+        bool IsR_Wr();
+        bool IsR_Rd();
         void   handleRequest();
         void   readRequest();
         void    getMethode();
-        void    setUp(int);
+        void    setUp();
 };
 
