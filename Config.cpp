@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/01 09:36:08 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/10 11:54:08 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/10 12:01:08 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,9 +133,9 @@ Server  Config::fillServervect(int start, int end, std::string conf)
             }
         }
         if(*it == "client_body_timeout")
-            o.client_body_timeout = atoi(*(++it));
+            o.client_body_timeout = atoi((*(++it)).c_str());
         if(*it == "client_max_body_size")
-            o.client_max_body_size =atoi(*(++it));
+            o.client_max_body_size =atoi((*(++it)).c_str());
         if(*it == "index")
         {
             it++;
