@@ -1,7 +1,10 @@
 {
     "files.associations": {
         "iosfwd": "cpp",
+<<<<<<< HEAD
         "vector": "cpp",
+=======
+>>>>>>> 39068d41620ade9b1f459b902fa400bdbb1bd56d
         "__bit_reference": "cpp",
         "__config": "cpp",
         "__debug": "cpp",
@@ -65,6 +68,11 @@
         "type_traits": "cpp",
         "typeinfo": "cpp",
         "unordered_map": "cpp",
+<<<<<<< HEAD
         "utility": "cpp"
+=======
+        "utility": "cpp",
+        "vector": "cpp"
+>>>>>>> 39068d41620ade9b1f459b902fa400bdbb1bd56d
     }
 }

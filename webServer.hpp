@@ -15,7 +15,11 @@
 #include <unistd.h>
 #include <map>
 #include <algorithm>
+#include <string>
+#include <functional>
 #define PORT 8080
-#define BUFFER_SIZE 10
-
+#define BUFFER_SIZE 500
+// function help for debug 
 int countWords(const std::string& input);
+
+void reque(std::vector<std::string > &request);
