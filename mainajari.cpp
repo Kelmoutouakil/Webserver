@@ -1,14 +1,5 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   mainajari.cpp                                      :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/12/29 13:34:47 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/10 10:40:23 by kelmouto         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+#include "WebServer.hpp"
+#include "Info.hpp"
 
 void reque(std::vector<std::string> &request)
 {
@@ -104,15 +95,14 @@ int main()
         std::cout << FD_ISSET(fd, &fdread)<< std::endl;
         if (FD_ISSET(fd, &fdread)) 
         {
-            std::string s;
-            Config o;
-            std::string f= o.ReadFile("config.conf");
-;
-            std::vector<Server>v = o.splitServers(f,0);
-           std::vector<Server> :: iterator it = v.begin();
-            for(;it != v.end(); it++)
-            {
-                std::cout<< (*it).listen << "   it" << (*it).root << "\n"; 
+            struct sockaddr_in client_address;
+            socklen_t client_address_len = sizeof(client_address);
+            std::cout << "WAITING ...\n";
+            int client_socket = accept(fd, (struct sockaddr*)&client_address, &client_address_len);
+            std::cout << "\33[0;31mfd : " << client_socket << std::endl << "\33[0m";
+            if (client_socket == -1) {
+                std::cerr << "Error accepting connection" << std::endl;
+                continue;
             }
             clients.push_back(client_socket);
             clientInfos.insert(std::make_pair(client_socket, Info()));
@@ -120,7 +110,7 @@ int main()
             FD_SET(client_socket, &fdread);
             FD_SET(client_socket, &fdwrite);
         }
-        catch(const std::exception& e)
+        for (size_t i = 0; i < clients.size(); i++)
         {
             if (FD_ISSET(clients[i], &fdread))
             {
