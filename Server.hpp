@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 11:48:52 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/10 11:54:59 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/10 21:13:41 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,17 +34,7 @@ class Location
  class Server
  {
    public:
-   Server()
-   {
-    serverName.push_back("Default");
-    index.push_back("index.html");
-    autoindex = 0;
-    //uploads = 0;
-    allow_methods["GET"] = 0;
-    allow_methods["POST"] = 0;
-    allow_methods["DELETE"] = 0;
-    client_body_timeout = 10;
-   }
+   Server();
     std::vector<std::string> serverBlock;
     std::string listen;
     std::vector<std::string> serverName;
