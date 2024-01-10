@@ -18,7 +18,7 @@
 #include <string>
 #include <functional>
 #define PORT 8080
-#define BUFFER_SIZE 500
+#define BUFFER_SIZE 501
 // function help for debug 
 int countWords(const std::string& input);
 
