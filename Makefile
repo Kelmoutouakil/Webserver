@@ -1,11 +1,15 @@
 CC = c++
-NAME = web_server
-CPPFLAGS = -Wall -Wextra -Werror -fsanitize=address -g3
-USER = $(shell whoami)
-OBJ = $(patsubst %.cpp,%.o,$(wildcard *$(USER).cpp))
+NAME = webserv
+CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g
+
+SRC =main.cpp Config.cpp Server.cpp
+HEADER =$(wildcard *.hpp)
+
+OBJ = $(SRC:.cpp=.o)
+
 
 all: $(NAME)
-$(NAME): $(OBJ)
+$(NAME): $(OBJ) 
 	$(CC) $(CPPFLAGS) $(OBJ) -o $(NAME)
 
 %.o:%.cpp
