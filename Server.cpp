@@ -6,83 +6,101 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/08 13:53:46 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/09 10:39:05 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/10 10:35:52 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include"Server.hpp"
 #include<algorithm>
 #include<iterator>
-void Server::parslocation(std::string v)
+Location buildClass(std::string v)
 {
     Location o;
-    std::string name ;
-    std::vector<std::string> tmp;
-    std::map<std::string,std::vector<std::string> > helper;
-    size_t found =v.find("location");
-    while (found != std::string::npos) 
+    std::stringstream ss(v);
+    std::string word;
+    size_t i = 0;
+
+    std::vector<std::string>helper;
+    while(ss >> word)
     {
-        int i = found;
-        while(v[i] && (v[i] == ' ' || v[i] == '\t'))
-            i++;
-        while(v[i] != '{')
-            name.push_back(v[i]);
-        int end = findEndofBlock(v, i + 1);
-        if(end == -1)
-            throw std::runtime_error(" bloc location error in {}");
-        locations.insert(std::make_pair(v.substr(i + 1,end - i - 1));
-        v.erase(found,end - found + 1);
-        // Move to the next position after the last found occurrence
-        found = v.find("location", found + 1);
+      i = word.length();
+        if(word[i - 1] == ';')
+        {
+            helper.push_back(word.substr(0,i - 1));
+            helper.push_back(";");
+        }
+        helper.push_back(word);
     }
+    std::vector<std::string>::iterator it = helper.begin();
+    for(;it != helper.end();it++)
+    {
+        if(*it == "root")
+        {
+            it++;
+            while(*it != ";" && it != helper.end())
+            {
+                o.root += *it;
+                it++;
+            }
+        }
+        if(*it == "index")
+        {
+            it++;
+            while(*it != ";" && it != helper.end())
+            {
+                o.index.push_back(*it);
+                it++;
+            }
+        }
+        if(*it == "autoindex")
+        {
+            it++;
+            if(*it == "off")
+                o.autoindex = false;
+            else if(*it == "on")
+                o.autoindex = true;
+        }
+        if(*it == "uploads")
+        {
+            it++;
+            if(*it == "off")
+                o.uploads= false;
+            else if(*it == "on")
+                o.uploads = true;
+        }
+        if(*it == "return")
+        {
+            it++;
+            while(*(it)!= ";" &&  (it + 2) != helper.end())
+            {
+                o.Return.insert(std::make_pair(atoi((*it).c_str()),*(it + 1)));
+                it+= 2;
+            }
+        }
+    }
+    return o;
 }
 
-// }
-// std::string Server:: getServerName()
-// {
-//     std::vector<std::string>::iterator it = serverBlock.find("server_name");
-//     if(it != serverBlock.end())
-//     {
-//         it++;
-//         while(*it != ";")
-//             this->serverName += (*it)++;
-//         return  serverName;
-//     }
-//     else
-//         return("default name");
-// }
-
-// std::string Server:: getRoot()
-// {
-//     std::vector<std::string>::iterator it = serverBlock.find("root");
-//     if(it != serverBlock.end())
-//     {
-//         it++;
-//         while(*it != ";")
-//             this->root += (*it)++;
-//         return  root;
-//     }
-//     else
-//         return("default root");
-// }
-
-// std::string Server:: getListen()
-// {
-//     std::vector<std::string>::iterator it = serverBlock.find("listen");
-//     if(it != serverBlock.end())
-//     {
-//         it++;
-//         while(*it != ";")
-//             this->listen += (*it)++;
-//         return  listen;
-//     }
-//     else
-//         throw std::runtime_error("listen not found");
-// }
-
-
-
-//    std::string getIndex();
-//    std::string getAutoindex();
-//    std::map<std::string,std::string> getErrorPages();
-//    std::map<std::string, bool>getAllow_methods();
+std::string Server::parslocation(std::string v)
+{
+    Location o;
+    std::string name;
+    size_t found = v.find("location");
+    size_t i = 0;
+    while (found != std::string::npos && i < v.size()) 
+    {
+        i = found + 8;
+        while (v[i] && (v[i] == ' ' || v[i] == '\t'))
+            i++;
+        name.clear();  
+        while (v[i] != '{')
+            name.push_back(v[i++]);
+        int end = findEndofBlock(v, i + 1);
+        if (end == -1)
+            throw std::runtime_error(" block location error in {}");
+        locations.insert(std::make_pair(name, buildClass(v.substr(i + 1, end - i - 1))));
+        v.erase(found, end - found + 1);
+        found = v.find("location", found + 1);
+    }
+    return v;
+}

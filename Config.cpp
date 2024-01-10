@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/01 09:36:08 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/09 09:58:38 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/10 10:27:10 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,12 +67,22 @@ int findEndofBlock(const std::string& conf, int start)
     }
     return -1;  
 }
-
-std::vector<std::string>  Config::fillServervect(int start, int end, std::string conf)
+std::string affect(std::vector<std::string>::iterator it,std::vector<std::string>::iterator e)
 {
+            std::string ptr;
+            it++;
+            while(it != e && *it != ";")
+            {
+                ptr += *it;
+                it++;
+            }
+            return(ptr);
+}
+Server  Config::fillServervect(int start, int end, std::string conf)
+{
+    Server o;
+    conf = o.parslocation(conf);    
     std::stringstream serverBlock (conf.substr(start + 1, end - start - 1));
-   // std::string serverBlock (conf.substr(start + 1, end - start - 1));
-
     std::vector<std::string> serverBlockLines;
     std::string word;
     while(serverBlock >> word)
@@ -82,42 +92,82 @@ std::vector<std::string>  Config::fillServervect(int start, int end, std::string
             serverBlockLines.push_back(word.substr(0,word.length() - 1));
             serverBlockLines.push_back(";");
         }
-        // if(word == "location")
-        serverBlockLines.push_back(word);
-        
+        else
+            serverBlockLines.push_back(word);
     }
-//     int i = 0;
-//    std::string temp;
-//     while(serverBlock[i])
-//     {
-//         if(serverBlock[i] == ' ')
-//         {
-//             serverBlockLines.push_back(temp);
-//             temp = "";
-//             while(serverBlock[i]== ' ')
-//                 i++;
-//         }
-//         if(serverBlock[i] == ';')
-//         {
-//             serverBlockLines.push_back(temp);
-//             serverBlockLines.push_back(";");
-//             temp = "";
-//             i++;
-//         }
-//         if(serverBlock[i] == '\n')
-//         {
-//             i++;
-//             while(serverBlock[i]== ' ' || serverBlock[i] == '\n')
-//                 i++;
-//             continue;
-//         }
-//         temp.push_back(serverBlock[i]);
-//         i++;
-//     }
-    return serverBlockLines;
+    std::vector<std::string> ::iterator it = serverBlockLines.begin();
+    for(;it != serverBlockLines.end();it++)
+    {
+        if(*it == "listen")
+        {
+            it++;
+            if(*(it + 1) != ";")
+                std::runtime_error("Error in listen port");
+            else
+                o.listen = *it; 
+        }
+        if(*it =="root") 
+            o.root = affect(it,serverBlockLines.end());
+        if(*it == "server_name")
+            o.serverName = affect(it,serverBlockLines.end());
+        if(*it == "client_body_timeout")
+            o.client_body_timeout = affect(it,serverBlockLines.end());
+        if(*it == "client_max_body_size")
+            o.client_max_body_size = affect(it,serverBlockLines.end());
+           if(*it == "index")
+        {
+            it++;
+            o.index.clear();
+            while(*it != ";" && it != serverBlockLines.end())
+            {
+                o.index.push_back(*it);
+                it++;
+            }
+        }
+        if(*it == "autoindex")
+        {
+            it++;
+            if(*it == "off")
+                o.autoindex = false;
+            else if(*it == "on")
+                o.autoindex = true;
+        }
+        if(*it == "uploads")
+        {
+            it++;
+            if(*it == "off")
+                o.uploads= false;
+            else if(*it == "on")
+                o.uploads = true;
+        }
+        if(*it == "allow_methods")
+        {
+            it++;
+            while(it != serverBlockLines.end() && *it != ";" )
+            {
+                if(*it == "GET")
+                    o.allow_methods[*it] = true;
+                if(*it == "POST")
+                    o.allow_methods[*it] = true;
+                if(*it == "DELETE")
+                    o.allow_methods[*it] = true;
+                it++;
+            }
+        }
+        if(*it == "return")
+        {
+            it++;
+            while(*(it)!= ";" &&  (it + 2) != serverBlockLines.end())
+            {
+                o.Return.insert(std::make_pair(atoi((*it).c_str()),*(it + 1)));
+                it+= 2;
+            }
+        }
+    }
+    return o;
 }
 
-std::vector<std::vector<std::string> > Config::splitServers(std::string conf,int nb)
+std::vector<Server>  Config:: splitServers(std::string conf,int nb)
 {
     conf = removeComent(conf);
     conf = TrimSpace(conf);
@@ -146,8 +196,8 @@ std::vector<std::vector<std::string> > Config::splitServers(std::string conf,int
     int end = findEndofBlock(conf ,i + 1);
     if(end == - 1)
         throw std::runtime_error("error in { }");
-    ConfigServer = fillServervect(start,end,conf);
-    vectofServers.push_back(ConfigServer);
+   
+    vectofServers.push_back(fillServervect(start,end,conf));
     if(conf.substr(end) != "\0")
         splitServers(conf.substr(end + 1),nb);    
     return vectofServers;
