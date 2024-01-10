@@ -9,17 +9,16 @@ class Info
         std::ifstream InFile;
         std::ofstream OutFile;
         std::vector<std::string> request;
-        char buffer[BUFFER_SIZE];
-        int fd;
-    public:
-        Info();
-        Info(int);
-        ~Info();
-        Info(const Info &obj);
+        char buffer[2];
         Info& operator=(const Info &obj);
+    public:
+        int fd;
+        Info(const Info &obj);
+        Info();
+        ~Info();
         void   handleRequest();
         void   readRequest();
         void    getMethode();
-        void    setUp();
+        void    setUp(int);
 };
 

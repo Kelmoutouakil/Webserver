@@ -1,6 +1,13 @@
 #include "WebServer.hpp"
 #include "Info.hpp"
 
+void reque(std::vector<std::string> &request)
+{
+    std::cout << "request: size:" << request.size() << "\33[1;34m\n";
+    for (size_t i = 0; i < request.size(); i++)
+        std::cout << request[i] << std::endl;
+    std::cout << "\33[0m\n";
+}
 
 void getMethode(int fd, std::stringstream &line)
 {
@@ -71,6 +78,15 @@ int main()
         FD_SET(fd, &fdread);
         for (size_t i = 0; i < clients.size(); i++)
         {
+            if (clientInfos[clients[i]].fd == -1)
+            {
+                clientInfos.erase(clientInfos.find(clients[i]));
+                clients.erase(clients.begin() + i);
+                if (!i)
+                    break;
+                i--;
+                continue;
+            }
             FD_SET(clients[i], &fdread);
             FD_SET(clients[i], &fdwrite);
         }
@@ -89,16 +105,23 @@ int main()
                 continue;
             }
             clients.push_back(client_socket);
-            clientInfos.insert(std::make_pair(client_socket, Info(client_socket)));
+            clientInfos.insert(std::make_pair(client_socket, Info()));
+            clientInfos[client_socket].setUp(client_socket);
             FD_SET(client_socket, &fdread);
             FD_SET(client_socket, &fdwrite);
         }
         for (size_t i = 0; i < clients.size(); i++)
         {
             if (FD_ISSET(clients[i], &fdread))
+            {
+                std::cout << "READy to read\n";
                 clientInfos[clients[i]].handleRequest();
+            }
             else if (FD_ISSET(clients[i], &fdwrite))
+            {
+                std::cout << "READY to write\n";
                 clientInfos[clients[i]].handleRequest();
+            }
         }
         usleep(1000000);
         // std::cout << "selet\n";
