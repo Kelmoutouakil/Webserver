@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/01 09:36:08 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/10 12:01:08 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/10 21:13:01 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,7 @@ int findEndofBlock(const std::string& conf, int start)
     }
     return -1;  
 }
+
 std::string affect(std::vector<std::string>::iterator it,std::vector<std::string>::iterator e)
 {
             std::string ptr;
@@ -78,16 +79,7 @@ std::string affect(std::vector<std::string>::iterator it,std::vector<std::string
             }
             return(ptr);
 }
-void Server::setupglobalroot(std::map<std::string,Location> v)
-{
-    std::map<std::string,Location>::iterator it = v.begin();
-    for(;it!= v.end();it++)
-    {
-        if(it->second.root == "")
-            it->second.root = this->root;
-    }
-    
-}
+
 Server  Config::fillServervect(int start, int end, std::string conf)
 {
     Server o;
@@ -177,6 +169,8 @@ Server  Config::fillServervect(int start, int end, std::string conf)
             }
         }
     }
+    if(o.root == "" || o.listen == "")
+        throw std::runtime_error("at least root and listen  should be setup");
     return o;
 }
 

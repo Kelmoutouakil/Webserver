@@ -6,13 +6,26 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/08 13:53:46 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/10 11:46:16 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/10 21:14:09 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include"Server.hpp"
 #include<algorithm>
 #include<iterator>
+Server::Server()
+{
+    root = "";
+    listen = "";
+    serverName.push_back("Default");
+    index.push_back("index.html");
+    autoindex = 0;
+    //uploads = 0;
+    allow_methods["GET"] = 0;
+    allow_methods["POST"] = 0;
+    allow_methods["DELETE"] = 0;
+    client_body_timeout = 10;
+}
 Location  Server::buildClass(std::string v)
 {
     Location o;
@@ -95,4 +108,15 @@ std::string Server::parslocation(std::string v)
         found = v.find("location", found + 1);
     }
     return v;
+}
+
+void Server::setupglobalroot(std::map<std::string,Location> v)
+{
+    std::map<std::string,Location>::iterator it = v.begin();
+    for(;it!= v.end();it++)
+    {
+        if(it->second.root == "")
+            it->second.root = this->root;
+    }
+    
 }
