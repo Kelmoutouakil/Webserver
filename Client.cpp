@@ -54,11 +54,12 @@ void   Client::ParseRequest(std::string &reque)
         throw std::runtime_error("Error : your request must end with \'\\r\\n\\r\\n\'.");
     while(true)
     {
-        if ((reque.find("\r\n") == reque.find("\r\n\r")) && M_U_V[0] != "")
+        if ((reque.find("\r\n") == reque.find("\r\n\r\n")) && M_U_V[0] != "")
         {
             if (reque.find("\r\n") <= reque.find(":") + 1)
                 throw std::runtime_error("Error : key value not as expected key:value");
             request[reque.substr(0, reque.find(":"))] = reque.substr(reque.find(":") + 1, reque.find("\r\n"));
+            if (reque.length() > reque.find("\r\n") + 4 )
             break;
         }
         else if (M_U_V[0] == "" && reque.find("\r\n") != std::string::npos)
@@ -120,6 +121,7 @@ void   Client::handleRequest()
             InFile.close();
             write(fd, "\r\n\r\n", 4);
             request.clear();
+            M_U_V[0] = "";
             wr = 0;
         }
         std::cout << "is_open : " << "\n";
