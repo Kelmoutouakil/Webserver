@@ -45,21 +45,21 @@ void AddNewClient(std::map<int, Client > &client, std::vector<int> &idx, fd_set 
 
 void serverOn(WebServer & web, Server &server)
 {
-    sever.CreationBindListen();
+    server.CreationBindListen();
     try
     {
         FD_ZERO(&web.FdRd);
         FD_ZERO(&web.FdWr);
-        FD_SET(fd, &web.FdRd);
+        FD_SET(server.fd, &web.FdRd);
         for (size_t i = 0; i < web.idx.size(); i++)
         {
             FD_SET(web.idx[i], &web.FdRd);
             FD_SET(web.idx[i], &web.FdWr);
         }
-        if (select(max_fd(web.idx, fd), &web.FdRd, &web.FdWr, NULL, NULL) < 0) 
+        if (select(max_fd(web.idx, server.fd), &web.FdRd, &web.FdWr, NULL, NULL) < 0) 
             exit(EXIT_FAILURE);
-        if (FD_ISSET(fd, &web.FdRd))
-            AddNewClient(web.client, web.idx, web.FdRd, web.FdWr, fd);
+        if (FD_ISSET(server.fd, &web.FdRd))
+            AddNewClient(web.client, web.idx, web.FdRd, web.FdWr, server.fd);
         for (size_t i = 0; i < web.client.size(); i++)
         {
             if ((FD_ISSET(web.idx[i], &web.FdRd) && web.client[web.idx[i]].IsR_Rd())  || (FD_ISSET(web.idx[i], &web.FdWr) && web.client[web.idx[i]].IsR_Wr()))
