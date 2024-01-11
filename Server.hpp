@@ -6,12 +6,11 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 11:48:52 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/11 14:36:43 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/11 14:41:14 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef SERVER_HPP
-#define SERVER_HPP
+#pragma once
 #include<iostream>
 #include<map>
 #include<sstream>
@@ -19,6 +18,7 @@
 #include<fstream>
 #include<vector>
 #include"Config.hpp"
+
 class Location
 {
   public:
@@ -34,23 +34,24 @@ class Location
 
 class Server
 {
-   public:
-   Server();
-   int port;
+  public:
+    Server();
+    void CreationBindListen();
+    int fd;
+    int port;
     std::vector<std::string> serverBlock;
     std::string ipAdress;
     std::vector<std::string> serverName;
     std::string root;
-     std::vector<std::string> index; 
-   bool autoindex;
+    std::vector<std::string> index; 
+    bool autoindex;
     size_t client_body_timeout;
     size_t client_max_body_size;
     std::map<std::string, std::string> errorPages;
-   std::map<std::string,Location> locations;//class location
-   std::string parslocation(std::string v);
-   std::map<std::string, bool>allow_methods;
-   Location  buildClass(std::string v);
-   void setupglobalroot(std::map<std::string,Location> v);
+    std::map<std::string,Location> locations;//class location
+    std::string parslocation(std::string v);
+    std::map<std::string, bool>allow_methods;
+    Location  buildClass(std::string v);
+    void setupglobalroot(std::map<std::string,Location> v);
  };
 int findEndofBlock(const std::string& conf, int start);
-#endif

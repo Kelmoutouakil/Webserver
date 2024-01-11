@@ -11,8 +11,10 @@
 /* ************************************************************************** */
 
 #include"Server.hpp"
+#include "WebServer.hpp"
 #include<algorithm>
 #include<iterator>
+
 Server::Server()
 {
     root = "";
@@ -27,6 +29,37 @@ Server::Server()
     allow_methods["DELETE"] = 0;
     client_body_timeout = 10;
 }
+
+void    Server::CreationBindListen()
+{
+    fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd == -1) {
+        std::cerr << "Error creating socket" << std::endl;
+        exit(1) ;
+    }
+    struct sockaddr_in server_address;
+    memset(&server_address, 0, sizeof(server_address));
+    server_address.sin_family = AF_INET;
+    server_address.sin_addr.s_addr = INADDR_ANY;
+    server_address.sin_port = htons(std::);
+    int reuse = 1;
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) == -1) {
+        perror("setsockopt"); 
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+    if (bind(fd, (struct sockaddr*)&server_address, sizeof(server_address)) == -1) {
+        std::cerr << errno << std::endl;
+        close(fd);
+        exit(-1);
+    }
+    if (listen(fd, 5) == -1) {
+        std::cerr << "Error listening for connections" << std::endl;
+        close(fd);
+        exit(-1);
+    }
+}
+
 Location  Server::buildClass(std::string v)
 {
     Location o;
