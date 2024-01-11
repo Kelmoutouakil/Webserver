@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/29 13:34:47 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/10 21:20:15 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/11 14:01:08 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,9 +27,7 @@ int main(int ac,char **av)
             for(;it != v.end(); it++)
             {
                 std::cout<<"hello\n";
-                std::map<std::string,bool>::iterator ite = (*it).allow_methods.begin();
-                for(;ite != (*it).allow_methods.end();ite++)
-                    std::cout<< ite->first << " : "<< ite->second << "\n";
+                std::cout<< "Ipadress : "<< (*it).ipAdress << " Port : "<< (*it).port << "\n";
             }
         }
         catch(const std::exception& e)

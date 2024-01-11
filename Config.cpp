@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/01 09:36:08 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/11 14:00:04 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/11 14:14:27 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,6 +94,7 @@ bool validIpAdress(std::string IpAdress)
     }
     return(count == 4);
 }
+
 bool validPort(std::string PortString)
 {
     int nb = std::stoi(PortString);
@@ -102,6 +103,7 @@ bool validPort(std::string PortString)
     else
         return(true); 
 }
+
 void parseListen(std::string content,Server& o)
 {
     std::istringstream ss(content);
@@ -110,12 +112,12 @@ void parseListen(std::string content,Server& o)
     std::getline(ss,Ipadress,':');
     std::getline(ss,PortString);
     if(!ss.fail() && validIpAdress(Ipadress) && validPort(PortString))
-    {
+    { 
         o.port = PortString;
         o.ipAdress = Ipadress;
     }
-    else
-        std::runtime_error("Error in listen directive");
+    else if(ss.fail() || !validIpAdress(Ipadress) || !validPort(PortString))
+        throw std::runtime_error("Error in listen directive");
 }
 
 Server  Config::fillServervect(int start, int end, std::string conf)
