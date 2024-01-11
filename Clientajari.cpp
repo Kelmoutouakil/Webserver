@@ -26,7 +26,7 @@ int toup(int t)
 
 void    Client::setUp()
 {
-    root = "/Users/ajari/Desktop/webserver";
+    root = "/Users/kelmouto/Desktop/webserver";
     std::string reque;
     char buffer[BUFFER_SIZE];
     int r;
@@ -44,6 +44,7 @@ void    Client::setUp()
         if (reque.find("\r\n\r\n") != std::string::npos)
             break;
     }
+    std::cout << "request:\n" << reque << std::endl;
     this->ParseRequest(reque);
 }
 
@@ -79,7 +80,10 @@ void   Client::ParseRequest(std::string &reque)
         reque = reque.substr(reque.find("\r\n") + 2, reque.length());
     }
     if (M_U_V[0] == "GET")
+    {
+        std::cout << "enter\n";
         this->getMethode();
+    }
 }
 
 void    Client::getMethode()
@@ -90,7 +94,7 @@ void    Client::getMethode()
     InFile.open(root + M_U_V[1]);
     if(!InFile.is_open())
     {
-        //std::cout << "error opning file\n";
+        std::cout << "error opning file\n";
         exit(0);
     }
     header = M_U_V[2] + " 200 OK\r\n" + conType + "content-length: " + std::to_string(InFile.size()) + "\r\n\r\n";
