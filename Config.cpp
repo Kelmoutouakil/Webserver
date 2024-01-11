@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/01 09:36:08 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/11 11:28:25 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/11 14:14:27 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,46 @@ std::string affect(std::vector<std::string>::iterator it,std::vector<std::string
             return(ptr);
 }
 
+bool validIpAdress(std::string IpAdress)
+{
+    std::istringstream ss(IpAdress);
+    std::string part;
+    int count = 0;
+    while(std::getline(ss,part,'.'))
+    {
+        int nb = std::stoi(part);
+        if(nb < 0 || nb > 255)
+            return false;
+        count++;
+    }
+    return(count == 4);
+}
+
+bool validPort(std::string PortString)
+{
+    int nb = std::stoi(PortString);
+    if(nb < 0 || nb >= 65535)
+        return(false);
+    else
+        return(true); 
+}
+
+void parseListen(std::string content,Server& o)
+{
+    std::istringstream ss(content);
+    std::string Ipadress;
+    std::string PortString;
+    std::getline(ss,Ipadress,':');
+    std::getline(ss,PortString);
+    if(!ss.fail() && validIpAdress(Ipadress) && validPort(PortString))
+    { 
+        o.port = PortString;
+        o.ipAdress = Ipadress;
+    }
+    else if(ss.fail() || !validIpAdress(Ipadress) || !validPort(PortString))
+        throw std::runtime_error("Error in listen directive");
+}
+
 Server  Config::fillServervect(int start, int end, std::string conf)
 {
     Server o;
@@ -102,13 +142,7 @@ Server  Config::fillServervect(int start, int end, std::string conf)
     for(;it != serverBlockLines.end();it++)
     {
         if(*it == "listen")
-        {
-            it++;
-            if(*(it + 1) != ";")
-                std::runtime_error("Error in listen port");
-            else
-                o.listen = *it; 
-        }
+            parseListen(*(++it),o);
         if(*it =="root") 
         {
             o.root = affect(it,serverBlockLines.end());
@@ -169,7 +203,7 @@ Server  Config::fillServervect(int start, int end, std::string conf)
             }
         }
     }
-    if(o.root == "" || o.listen == "")
+    if(o.root == "" || o.port == "" || o.ipAdress == "")
         throw std::runtime_error("at least root and listen  should be setup");
     return o;
 }

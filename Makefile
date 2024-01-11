@@ -1,7 +1,7 @@
 CC = c++
 NAME = webserv
 CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g
-SRC = $(wildcard *ajari.cpp)
+SRC = main.cpp Server.cpp Config.cpp
 HEADER =$(wildcard *.hpp)
 
 OBJ = $(SRC:.cpp=.o)
