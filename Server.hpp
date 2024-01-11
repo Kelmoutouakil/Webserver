@@ -31,8 +31,9 @@ class Location
     std::map<int,std::string> Return;
     bool uploads;
 };
- class Server
- {
+
+class Server
+{
    public:
    Server();
     std::vector<std::string> serverBlock;
