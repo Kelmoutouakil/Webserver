@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/01 09:36:08 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/11 14:14:27 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/11 14:37:20 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,13 +113,18 @@ void parseListen(std::string content,Server& o)
     std::getline(ss,PortString);
     if(!ss.fail() && validIpAdress(Ipadress) && validPort(PortString))
     { 
-        o.port = PortString;
+        o.port = std::stoi(PortString);
         o.ipAdress = Ipadress;
     }
     else if(ss.fail() || !validIpAdress(Ipadress) || !validPort(PortString))
         throw std::runtime_error("Error in listen directive");
 }
-
+void defaultErrorPages(std::map<std::string,std::string>& map)
+{
+    map["404"] = "error_pages/404.html";
+    map["405"] = "error_pages/405.html";
+    map["300"] = "error_pages/300.html";
+}
 Server  Config::fillServervect(int start, int end, std::string conf)
 {
     Server o;
@@ -202,8 +207,19 @@ Server  Config::fillServervect(int start, int end, std::string conf)
                 it++;
             }
         }
+        if(*it == "error_page")
+        {
+            it++;
+            while(*(it)!= ";" &&  (it + 2) != serverBlockLines.end())
+            {
+                o.errorPages.insert(std::make_pair((*it),*(it + 1)));
+                it+= 2;
+            }
+        }
     }
-    if(o.root == "" || o.port == "" || o.ipAdress == "")
+    if(o.errorPages.empty())
+        defaultErrorPages(o.errorPages);
+    if(o.root == "" || o.port == -1 || o.ipAdress == "")
         throw std::runtime_error("at least root and listen  should be setup");
     return o;
 }

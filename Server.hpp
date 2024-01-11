@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 11:48:52 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/11 13:48:27 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/11 14:36:43 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ class Location
  {
    public:
    Server();
-   std::string port;
+   int port;
     std::vector<std::string> serverBlock;
     std::string ipAdress;
     std::vector<std::string> serverName;
