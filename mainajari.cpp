@@ -1,30 +1,18 @@
 #include "WebServer.hpp"
-#include "Info.hpp"
+#include "Client.hpp"
+void Error(const std::string &error, bool ex, int value = 0)
+{
+    std::cerr << error << std::endl;
+    if (ex)
+        exit(value);
+}
 
 void reque(std::vector<std::string> &request)
 {
-    (void)request;
-    //std::cout << "request: size:" << request.size() << "\33[1;34m\n";
-   // for (size_t i = 0; i < request.size(); i++)
-        //std::cout << request[i] << std::endl;
-    //std::cout << "\33[0m\n";
-}
-
-void getMethode(int fd, std::stringstream &line)
-{
-    std::string word;
-    std::string content;
-    std::string header;
-  
-    line >> word;
-    //std::cout << word << std::endl;
-    std::ifstream inFile(word.substr(1, word.length()));
-    while(std::getline(inFile, word))
-        content += word + "\n";
-    line >> word;
-    header = word + " 200 OK\nContent-Type: text/html\nTransfer-Encoding: chunked\n\n";
-    write(fd, header.c_str() , header.length());
-    write(fd, content.c_str(), content.length());
+    std::cout << "request: size:" << request.size() << "\33[1;34m\n";
+    for (size_t i = 0; i < request.size(); i++)
+        std::cout << request[i] << std::endl;
+    std::cout << "\33[0m\n";
 }
 
 int CreationBindListen(void)
@@ -65,7 +53,7 @@ int max_fd(std::vector<int> client, int fd)
     return std::max(*std::max_element(client.begin(), client.end()), fd) + 1;
 }
 
-void AddNewClient(std::map<int, Info > &client, std::vector<int> &idx, fd_set &FdRd, fd_set &FdWr, int fd)
+void AddNewClient(std::map<int, Client > &client, std::vector<int> &idx, fd_set &FdRd, fd_set &FdWr, int fd)
 {
     struct sockaddr_in client_address;
     socklen_t client_address_len = sizeof(client_address);
@@ -76,7 +64,7 @@ void AddNewClient(std::map<int, Info > &client, std::vector<int> &idx, fd_set &F
         return;
     }
     idx.push_back(client_socket);
-    client.insert(std::make_pair(client_socket, Info()));
+    client.insert(std::make_pair(client_socket, Client()));
     client[client_socket].fd = client_socket;
     FD_SET(client_socket, &FdRd);
     FD_SET(client_socket, &FdWr);    
@@ -84,7 +72,7 @@ void AddNewClient(std::map<int, Info > &client, std::vector<int> &idx, fd_set &F
 
 int main() 
 {
-    std::map<int, Info> client;
+    std::map<int, Client> client;
     std::vector<int> idx;
     fd_set FdRd, FdWr;
     int fd = CreationBindListen();
@@ -92,25 +80,31 @@ int main()
     int i = 0;
     while (true)
     {
-        FD_ZERO(&FdRd);
-        FD_ZERO(&FdWr);
-        FD_SET(fd, &FdRd);
-        for (size_t i = 0; i < idx.size(); i++)
+        try
         {
-            FD_SET(idx[i], &FdRd);
-            FD_SET(idx[i], &FdWr);
+            FD_ZERO(&FdRd);
+            FD_ZERO(&FdWr);
+            FD_SET(fd, &FdRd);
+            for (size_t i = 0; i < idx.size(); i++)
+            {
+                FD_SET(idx[i], &FdRd);
+                FD_SET(idx[i], &FdWr);
+            }
+            if (select(max_fd(idx, fd), &FdRd, &FdWr, NULL, NULL) < 0) 
+                exit(EXIT_FAILURE);
+            if (FD_ISSET(fd, &FdRd))
+                AddNewClient(client, idx, FdRd, FdWr, fd);
+            for (size_t i = 0; i < client.size(); i++)
+            {
+                if ((FD_ISSET(idx[i], &FdRd) && client[idx[i]].IsR_Rd())  || (FD_ISSET(idx[i], &FdWr) && client[idx[i]].IsR_Wr()))
+                    client[idx[i]].handleRequest();
+            }
         }
-        if (select(max_fd(idx, fd), &FdRd, &FdWr, NULL, NULL) < 0) 
-            exit(EXIT_FAILURE);
-        if (FD_ISSET(fd, &FdRd))
-            AddNewClient(client, idx, FdRd, FdWr, fd);
-        for (size_t i = 0; i < client.size(); i++)
+        catch(const std::exception& e)
         {
-            if ((FD_ISSET(idx[i], &FdRd) && client[idx[i]].IsR_Rd())  || (FD_ISSET(idx[i], &FdWr) && client[idx[i]].IsR_Wr()))
-                client[idx[i]].handleRequest();
+            
+            std::cerr << e.what() << '\n';
         }
-        //usleep(1000000);
-        //std::cout << "while end\n";
         i++;
     }
     close(fd);

@@ -23,3 +23,4 @@
 int countWords(const std::string& input);
 
 void reque(std::vector<std::string > &request);
+void Error(const std::string &error, bool exit);
