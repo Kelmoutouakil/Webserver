@@ -19,37 +19,6 @@ void reque(std::vector<std::string> &request)
     std::cout << "\33[0m\n";
 }
 
-int CreationBindListen(void)
-{
-    int server_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_socket == -1) {
-        std::cerr << "Error creating socket" << std::endl;
-        return -1;
-    }
-    struct sockaddr_in server_address;
-    memset(&server_address, 0, sizeof(server_address));
-    server_address.sin_family = AF_INET;
-    server_address.sin_addr.s_addr = INADDR_ANY;
-    server_address.sin_port = htons(PORT);
-    int reuse = 1;
-    if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) == -1) {
-        perror("setsockopt"); 
-        close(server_socket);
-        exit(EXIT_FAILURE);
-    }
-    if (bind(server_socket, (struct sockaddr*)&server_address, sizeof(server_address)) == -1) {
-        std::cerr << errno << std::endl;
-        close(server_socket);
-        exit(-1);
-    }
-    if (listen(server_socket, 5) == -1) {
-        std::cerr << "Error listening for connections" << std::endl;
-        close(server_socket);
-        exit(-1);
-    }
-    return server_socket;
-}
-
 int max_fd(std::vector<int> client, int fd)
 {
     if (client.empty())
@@ -76,46 +45,42 @@ void AddNewClient(std::map<int, Client > &client, std::vector<int> &idx, fd_set 
 
 void serverOn(WebServer & web, Server &server)
 {
-    int fd = CreationBindListen();
-    int i = 0;
-    while (true)
+    sever.CreationBindListen();
+    try
     {
-        try
+        FD_ZERO(&web.FdRd);
+        FD_ZERO(&web.FdWr);
+        FD_SET(fd, &web.FdRd);
+        for (size_t i = 0; i < web.idx.size(); i++)
         {
-            FD_ZERO(&web.FdRd);
-            FD_ZERO(&web.FdWr);
-            FD_SET(fd, &web.FdRd);
-            for (size_t i = 0; i < web.idx.size(); i++)
-            {
-                FD_SET(web.idx[i], &web.FdRd);
-                FD_SET(web.idx[i], &web.FdWr);
-            }
-            if (select(max_fd(web.idx, fd), &web.FdRd, &web.FdWr, NULL, NULL) < 0) 
-                exit(EXIT_FAILURE);
-            if (FD_ISSET(fd, &web.FdRd))
-                AddNewClient(web.client, web.idx, web.FdRd, web.FdWr, fd);
-            for (size_t i = 0; i < web.client.size(); i++)
-            {
-                if ((FD_ISSET(web.idx[i], &web.FdRd) && web.client[web.idx[i]].IsR_Rd())  || (FD_ISSET(web.idx[i], &web.FdWr) && web.client[web.idx[i]].IsR_Wr()))
-                    web.client[web.idx[i]].handleRequest();
-            }
+            FD_SET(web.idx[i], &web.FdRd);
+            FD_SET(web.idx[i], &web.FdWr);
         }
-        catch(const std::exception& e)
-        { 
-            std::cerr << e.what() << '\n';
+        if (select(max_fd(web.idx, fd), &web.FdRd, &web.FdWr, NULL, NULL) < 0) 
+            exit(EXIT_FAILURE);
+        if (FD_ISSET(fd, &web.FdRd))
+            AddNewClient(web.client, web.idx, web.FdRd, web.FdWr, fd);
+        for (size_t i = 0; i < web.client.size(); i++)
+        {
+            if ((FD_ISSET(web.idx[i], &web.FdRd) && web.client[web.idx[i]].IsR_Rd())  || (FD_ISSET(web.idx[i], &web.FdWr) && web.client[web.idx[i]].IsR_Wr()))
+                web.client[web.idx[i]].handleRequest();
         }
-        i++;
     }
-    close(fd);
+    catch(const std::exception& e)
+    { 
+        std::cerr << e.what() << '\n';
+    }
 }
  
 int main(int ac, char *av[]) 
 {
     WebServer web(ac, av);
-    for (size_t i = 0; i < web.servers.size(); i++)
+    while(true)
     {
-        serverOn(web, web.servers[i]);
+        for (size_t i = 0; i < web.servers.size(); i++)
+        {
+            serverOn(web, web.servers[i]);
+        }
     }
- 
     return 0;
 }
