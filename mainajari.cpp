@@ -67,7 +67,7 @@ void AddNewClient(std::map<int, Client > &client, std::vector<int> &idx, fd_set 
     client.insert(std::make_pair(client_socket, Client()));
     client[client_socket].fd = client_socket;
     FD_SET(client_socket, &FdRd);
-    FD_SET(client_socket, &FdWr);    
+    FD_SET(client_socket, &FdWr);
 }
 
 int main() 
@@ -101,8 +101,7 @@ int main()
             }
         }
         catch(const std::exception& e)
-        {
-            
+        { 
             std::cerr << e.what() << '\n';
         }
         i++;
