@@ -1,14 +1,14 @@
 CC = c++
 NAME = webserv
 CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g
-SRC = $(wildcard *$(shell whoami).cpp)
+SRC = $(wildcard *ajari.cpp)
 HEADER =$(wildcard *.hpp)
 
 OBJ = $(SRC:.cpp=.o)
 
 
 all: $(NAME)
-$(NAME): $(OBJ) 
+$(NAME): $(OBJ)
 	$(CC) $(CPPFLAGS) $(OBJ) -o $(NAME)
 
 %.o:%.cpp

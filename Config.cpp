@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/01 09:36:08 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/10 21:13:01 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/11 11:28:25 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -203,7 +203,6 @@ std::vector<Server>  Config:: splitServers(std::string conf,int nb)
     int end = findEndofBlock(conf ,i + 1);
     if(end == - 1)
         throw std::runtime_error("error in { }");
-   
     vectofServers.push_back(fillServervect(start,end,conf));
     if(conf.substr(end) != "\0")
         splitServers(conf.substr(end + 1),nb);    
