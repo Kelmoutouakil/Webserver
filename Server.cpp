@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/08 13:53:46 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/11 13:59:11 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/11 14:38:35 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 Server::Server()
 {
     root = "";
-    port = "";
+    port = -1;
     ipAdress= "";
     serverName.push_back("Default");
     index.push_back("index.html");
