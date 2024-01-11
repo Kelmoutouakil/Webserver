@@ -1,6 +1,6 @@
-#include "inFile.hpp"
+#include "InFile.hpp"
 
-size_t inFile::size()
+size_t InFile::size()
 {
     std::streamsize original_position = this->tellg();
     this->seekg(0, std::ios::end);

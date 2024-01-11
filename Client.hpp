@@ -1,7 +1,7 @@
 #pragma once
 
 #include "WebServer.hpp" 
-#include "inFile.hpp"
+#include "InFile.hpp"
 
 class Client
 {
@@ -10,7 +10,7 @@ class Client
         std::map <std::string, std::string> request;
         std::string root;
         std::string M_U_V[3];
-        inFile InFile;
+        InFile InFile;
         std::ofstream OutFile;
         char buffer[BUFFER_SIZE];
         Client& operator=(const Client &obj);

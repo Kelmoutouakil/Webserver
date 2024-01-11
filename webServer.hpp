@@ -19,8 +19,19 @@
 #include <functional>
 #define PORT 8080
 #define BUFFER_SIZE 501
-// function help for debug 
-int countWords(const std::string& input);
+#include "Client.hpp"
+#include "Server.hpp"
+
+class WebServer 
+{
+        
+    public:
+        char *conf;
+        std::map<int ,Client> client;
+        std::vector<int> idx;
+        fd_set FdRd, FdWr;
+        std::vector<Server> servers;
+        WebServer(int, char *av[]);
+};
 
 void reque(std::vector<std::string > &request);
-void Error(const std::string &error, bool exit);
