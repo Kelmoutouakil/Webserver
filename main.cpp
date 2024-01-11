@@ -45,36 +45,39 @@ void AddNewClient(std::map<int, Client > &client, std::vector<int> &idx, fd_set 
 
 void serverOn(WebServer & web, Server &server)
 {
-    server.CreationBindListen();
+    if (server.fd == -1)
+        server.CreationBindListen();
     try
     {
         FD_ZERO(&web.FdRd);
         FD_ZERO(&web.FdWr);
         FD_SET(server.fd, &web.FdRd);
-        for (size_t i = 0; i < web.idx.size(); i++)
+        for (size_t i = 0; i < server.idx.size(); i++)
         {
-            FD_SET(web.idx[i], &web.FdRd);
-            FD_SET(web.idx[i], &web.FdWr);
+            FD_SET(server.idx[i], &web.FdRd);
+            FD_SET(server.idx[i], &web.FdWr);
         }
-        if (select(max_fd(web.idx, server.fd), &web.FdRd, &web.FdWr, NULL, NULL) < 0) 
+        if (select(max_fd(server.idx, server.fd), &web.FdRd, &web.FdWr, NULL, NULL) < 0) 
             exit(EXIT_FAILURE);
         if (FD_ISSET(server.fd, &web.FdRd))
-            AddNewClient(web.client, web.idx, web.FdRd, web.FdWr, server.fd);
-        for (size_t i = 0; i < web.client.size(); i++)
+            AddNewClient(server.client, server.idx, web.FdRd, web.FdWr, server.fd);
+        for (size_t i = 0; i < server.client.size(); i++)
         {
-            if ((FD_ISSET(web.idx[i], &web.FdRd) && web.client[web.idx[i]].IsR_Rd())  || (FD_ISSET(web.idx[i], &web.FdWr) && web.client[web.idx[i]].IsR_Wr()))
-                web.client[web.idx[i]].handleRequest();
+            if ((FD_ISSET(server.idx[i], &web.FdRd) && server.client[server.idx[i]].IsR_Rd())  || (FD_ISSET(server.idx[i], &web.FdWr) && server.client[server.idx[i]].IsR_Wr()))
+                server.client[server.idx[i]].handleRequest();
         }
     }
     catch(const std::exception& e)
     { 
         std::cerr << e.what() << '\n';
     }
+    std::cout << "clear\n";
 }
  
-int main(int ac, char *av[]) 
+int main(int ac, char **av) 
 {
     WebServer web(ac, av);
+
     while(true)
     {
         for (size_t i = 0; i < web.servers.size(); i++)

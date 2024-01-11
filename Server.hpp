@@ -18,6 +18,7 @@
 #include<fstream>
 #include<vector>
 #include"Config.hpp"
+#include "Client.hpp"
 
 class Location
 {
@@ -37,13 +38,15 @@ class Server
   public:
     Server();
     void CreationBindListen();
+    std::vector<int> idx;
+    std::map<int ,Client> client;
     int fd;
     int port;
     std::vector<std::string> serverBlock;
     std::string ipAdress;
     std::vector<std::string> serverName;
     std::string root;
-    std::vector<std::string> index; 
+    std::vector<std::string> index;
     bool autoindex;
     size_t client_body_timeout;
     size_t client_max_body_size;

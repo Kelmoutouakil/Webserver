@@ -1,6 +1,6 @@
 #include "WebServer.hpp"
 
-WebServer::WebServer(int ac, char *av[])
+WebServer::WebServer(int ac, char **av)
 {
     Config o;
 
@@ -8,6 +8,6 @@ WebServer::WebServer(int ac, char *av[])
         conf = av[1];
     else
         conf = "webserver.conf";
-    std::string f = o.ReadFile(av[1]);
-    std::vector<Server> servers = o.splitServers(f,0);
+    std::string f = o.ReadFile(conf.c_str());
+    servers = o.splitServers(f, 0);
 }

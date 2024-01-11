@@ -26,7 +26,7 @@ int toup(int t)
 
 void    Client::setUp()
 {
-    root = "/Users/kelmouto/Desktop/webserver";
+    root = "/Users/ajari/Desktop/webserver";
     std::string reque;
     char buffer[BUFFER_SIZE];
     int r;
@@ -34,7 +34,7 @@ void    Client::setUp()
     while(true)
     {
         r = read(fd, buffer, BUFFER_SIZE - 1);
-        if (r <= 0)
+        if (r < 0)
         {
             std::cout << "error reading" << std::endl;
             exit(0);
@@ -80,10 +80,7 @@ void   Client::ParseRequest(std::string &reque)
         reque = reque.substr(reque.find("\r\n") + 2, reque.length());
     }
     if (M_U_V[0] == "GET")
-    {
-        std::cout << "enter\n";
         this->getMethode();
-    }
 }
 
 void    Client::getMethode()
@@ -99,8 +96,6 @@ void    Client::getMethode()
     }
     header = M_U_V[2] + " 200 OK\r\n" + conType + "content-length: " + std::to_string(InFile.size()) + "\r\n\r\n";
     write(fd, header.c_str(), header.length());
-    InFile.open(root + M_U_V[1]);
-    //std::cout << "header:\n" << header << std::endl;
 }
 
 void   Client::handleRequest()
@@ -114,6 +109,7 @@ void   Client::handleRequest()
         this->setUp();
     if (M_U_V[0] == "GET" && InFile)
     {
+        std::cout << "helloword\n";
         wr = 1;
         InFile.read(buffer, BUFFER_SIZE - 1);
         buffer[InFile.gcount()] = 0;
@@ -126,7 +122,7 @@ void   Client::handleRequest()
             request.clear();
             wr = 0;
         }
-        //std::cout << "is_open : " << InFile.is_open() << "\n";
+        std::cout << "is_open : " << "\n";
     }
 
 }

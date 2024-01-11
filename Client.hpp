@@ -1,8 +1,11 @@
 #pragma once
+#ifndef BUFFER_SIZE
+#define BUFFER_SIZE 501
+#endif
 
-#include "WebServer.hpp" 
+//#include "WebServer.hpp"
 #include "InFile.hpp"
-
+#include <map>
 class Client
 {
         bool rd;

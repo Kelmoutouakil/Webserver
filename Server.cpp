@@ -19,6 +19,7 @@ Server::Server()
 {
     root = "";
     port = -1;
+    fd = -1;
     ipAdress= "";
     serverName.push_back("Default");
     index.push_back("index.html");
