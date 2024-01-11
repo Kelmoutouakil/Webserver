@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/01 09:36:08 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/11 13:57:32 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/11 14:00:04 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -201,7 +201,7 @@ Server  Config::fillServervect(int start, int end, std::string conf)
             }
         }
     }
-    if(o.root == "" || o.listen == "")
+    if(o.root == "" || o.port == "" || o.ipAdress == "")
         throw std::runtime_error("at least root and listen  should be setup");
     return o;
 }
