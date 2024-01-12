@@ -98,6 +98,7 @@ void    Client::openFileSendHeader()
     std::string conType("Content-Type: video/mp4\r\n");
 
     In->open(root + M_U_V[1]);
+    std::cout << "hi\n";
     if(!In->is_open())
     {
         std::cout << "error opning file\n";
