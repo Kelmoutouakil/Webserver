@@ -1,17 +1,20 @@
 #include "Client.hpp"
 #include "WebServer.hpp"
-
-Client::Client()
+#include "InFile.hpp"
+Client::Client(int fdsocket)
 {
     root = "/Users/ajari/Desktop/webserver";
     std::string request, n;
     char buffer[BUFFER_SIZE];
-    InFile = new class InFile();
-    OutFile = new std::ofstream();
-    
+    fd = fdsocket;
+    In = new InFile();
+    Out = new std::ofstream();
+    std::cout << "constructor\n";
     while(true)
     {
+        std::cout << "clear fd: " << fd << "\n";
         int r = read(fd, buffer, BUFFER_SIZE - 1);
+        std::cout << "clear\n";
         if (r < 0)
             throw std::runtime_error("Error reading form client socket:" + std::to_string(fd));
         buffer[r] = '\0';
@@ -36,7 +39,10 @@ Client::Client()
     this->ParseRequest(request);
 }
 
-Client::Client(const Client &obj) { (void)obj;}
+Client::Client(const Client &obj)
+{
+    *this = obj;
+}
 
 Client& Client::operator=(const Client &obj)
 {
@@ -45,17 +51,19 @@ Client& Client::operator=(const Client &obj)
     header =  obj.header;
     body =  obj.body;
     root =  obj.root;
-    OutFile =  obj.OutFile;
-    InFile =  obj.InFile;
+    Out =  obj.Out;
+    In =  obj.In;
+    fd = obj.fd;
+
     return *this;
 }
 
 Client::~Client() 
 {
-    InFile->close();
-    OutFile->close();
-    delete InFile;
-    delete OutFile;
+    In->close();
+    Out->close();
+    delete In;
+    delete Out;
     std::cout << "client destructor called \n";
 }
 
@@ -89,13 +97,13 @@ void    Client::openFileSendHeader()
     std::string header;
     std::string conType("Content-Type: video/mp4\r\n");
 
-    InFile->open(root + M_U_V[1]);
-    if(!InFile->is_open())
+    In->open(root + M_U_V[1]);
+    if(!In->is_open())
     {
         std::cout << "error opning file\n";
         exit(0);
     }
-    header = M_U_V[2] + " 200 OK\r\n" + conType + "content-length: " + std::to_string(InFile->size()) + "\r\n\r\n";
+    header = M_U_V[2] + " 200 OK\r\n" + conType + "content-length: " + std::to_string(In->size()) + "\r\n\r\n";
     write(fd, header.c_str(), header.length());
 }
 void  Client::PostMethode(Client& obj)
@@ -109,7 +117,12 @@ void  Client::PostMethode(Client& obj)
         {
             if(*ite == "on")
             {
+                std::string file = *(ite + 1);
+                Out->open(file+"html",std::ios_base::out | std::ios_base::app);
+                if(Out->is_open())
+                {
 
+                }
             }
         }
     }
@@ -121,16 +134,16 @@ void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
     std::string nBytes;
     std::string response;
 
-    
+    std::cout << "hello fd:" <<  fd << std::endl;
     if (FD_ISSET(fd, Rd) || FD_ISSET(fd, Wr))
     {
-        if (M_U_V[0] == "GET" && InFile)
+        if (M_U_V[0] == "GET" && In)
         {
-            std::cout << "helloword\n";
-            InFile->read(buffer, BUFFER_SIZE - 1);
-            buffer[InFile->gcount()] = 0;
-            write(fd, buffer ,InFile->gcount());
-            if (InFile->eof())
+            std::cout << "is open:" << In->is_open() << "\n";
+            In->read(buffer, BUFFER_SIZE - 1);
+            buffer[In->gcount()] = 0;
+            write(fd, buffer ,In->gcount());
+            if (In->eof())
             {
                 std::cout << "\33[1;31m ----------------------------------" << i << ">\n\33[0m";
                 write(fd, "\r\n\r\n", 4);
@@ -141,6 +154,7 @@ void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
         }
         else if(M_U_V[0] == "POST")
         {
+            
             PostMethode(*this);
         }
     }
