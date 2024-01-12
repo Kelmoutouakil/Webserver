@@ -20,6 +20,7 @@
 #include"Config.hpp"
 #include "Client.hpp"
 
+class WebServer;
 class Location
 {
   public:
@@ -36,10 +37,12 @@ class Location
 class Server
 {
   public:
+    void AddNewClient(fd_set *FdRd, fd_set *FdWr);
+    void run(WebServer & web);
     Server();
     void CreationBindListen();
-    std::vector<int> idx;
-    std::map<int ,Client> client;
+    // std::vector<int> idx;
+    std::vector<Client> client;
     int fd;
     int port;
     std::vector<std::string> serverBlock;

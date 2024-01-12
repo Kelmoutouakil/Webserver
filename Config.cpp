@@ -255,7 +255,6 @@ std::vector<Server>  Config:: splitServers(std::string conf,int nb)
         throw std::runtime_error("error in { }");
     vectofServers.push_back(fillServervect(start,end,conf));
     if(conf.substr(end) != "\0")
-        splitServers(conf.substr(end + 1),nb);   
-    std::cout << "size: " << vectofServers.size();
+        splitServers(conf.substr(end + 1),nb);
     return vectofServers;
 }

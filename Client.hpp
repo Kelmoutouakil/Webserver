@@ -8,25 +8,21 @@
 #include <map>
 class Client
 {
-        bool rd;
-        bool wr;
-        std::map <std::string, std::string> request;
+        std::map <std::string, std::string> header;
+        std::string body;
         std::string root;
         std::string M_U_V[3];
-        InFile InFile;
-        std::ofstream OutFile;
         char buffer[BUFFER_SIZE];
-        Client& operator=(const Client &obj);
     public:
+        std::ofstream *OutFile;
+        InFile *InFile;
         int fd;
+        Client& operator=(const Client &obj);
         Client();
         ~Client();
         Client(const Client &obj);
-        bool IsR_Wr();
-        bool IsR_Rd();
-        void   handleRequest();
+        void   handleRequest(fd_set *, fd_set *);
         void   ParseRequest(std::string &);
-        void    getMethode();
-        void    setUp();
+        void    openFileSendHeader();
 };
 

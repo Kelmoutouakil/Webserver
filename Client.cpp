@@ -1,20 +1,62 @@
 #include "Client.hpp"
 #include "WebServer.hpp"
 
-Client::Client() {}
-Client::Client(const Client &obj) { (void)obj;}
-
-Client::~Client() {}
-
-
-bool Client::IsR_Wr()
+Client::Client()
 {
-    return wr;
+    root = "/Users/ajari/Desktop/webserver";
+    std::string request, n;
+    char buffer[BUFFER_SIZE];
+    InFile = new class InFile();
+    OutFile = new std::ofstream();
+    
+    while(true)
+    {
+        int r = read(fd, buffer, BUFFER_SIZE - 1);
+        if (r < 0)
+            throw std::runtime_error("Error reading form client socket:" + std::to_string(fd));
+        buffer[r] = '\0';
+        request += buffer;
+        if (request.find("\r\n\r\n") != std::string::npos)
+        {
+            std::cout << "hello world\n";
+            break;
+        }
+    }
+    std::stringstream first(request.substr(0, request.find("\r\n")));
+    request = request.substr(request.find("\r\n") + 2, request.length());
+    for (int i = 0;i < 3 && first >> M_U_V[i];i++)
+        ;
+    if (!M_U_V[0][0] || !M_U_V[1][0]|| !M_U_V[1][0])
+        throw std::runtime_error("the first line of the header must have three word\n");
+    if  (M_U_V[0] == "GET")
+    {
+        this->openFileSendHeader();
+        return ;
+    }
+    this->ParseRequest(request);
 }
 
-bool Client::IsR_Rd()
+Client::Client(const Client &obj) { (void)obj;}
+
+Client& Client::operator=(const Client &obj)
 {
-    return !request.size();
+    for (int i = 0; i < 3; i++)
+        M_U_V[i] =  obj.M_U_V[i];
+    header =  obj.header;
+    body =  obj.body;
+    root =  obj.root;
+    OutFile =  obj.OutFile;
+    InFile =  obj.InFile;
+    return *this;
+}
+
+Client::~Client() 
+{
+    InFile->close();
+    OutFile->close();
+    delete InFile;
+    delete OutFile;
+    std::cout << "client destructor called \n";
 }
 
 int toup(int t)
@@ -24,109 +66,64 @@ int toup(int t)
     return t;
 }
 
-void    Client::setUp()
+void   Client::ParseRequest(std::string &request)
 {
-    root = "/Users/ajari/Desktop/webserver";
-    std::string reque;
-    char buffer[BUFFER_SIZE];
-    int r;
-
-    while(true)
+    std::string line;
+    
+    if (request.find("\r\n\r\n") == std::string::npos)
+        throw std::runtime_error("Error : your requestst must end with \'\\r\\n\\r\\n\'.");
+    while(request.find("\r\n\r\n") != std::string::npos)
     {
-        r = read(fd, buffer, BUFFER_SIZE - 1);
-        if (r < 0)
-        {
-            std::cout << "error reading" << std::endl;
-            exit(0);
-        }
-        buffer[r] = '\0';
-        reque += buffer;
-        if (reque.find("\r\n\r\n") != std::string::npos)
-            break;
+        line = request.substr(0, request.find("\r\n"));
+        if (!(line.find(":") != std::string::npos && (line.length() - std::count(line.begin(), line.end(), ' ') >= 3)))
+            throw std::runtime_error("Error : key value not as expected key:value");
+        header[line.substr(0, line.find(":"))] = line.substr(line.find(":" + 1, line.length()));
+        request = request.substr(request.find("\r\n") + 2, request.length());
     }
-    std::cout << "request:\n" << reque << std::endl;
-    this->ParseRequest(reque);
+    if (request.length() > 2)
+        body = request.substr(2, request.length());
 }
 
-void   Client::ParseRequest(std::string &reque)
-{
-    if (reque.find("\r\n\r\n") == std::string::npos)
-        throw std::runtime_error("Error : your request must end with \'\\r\\n\\r\\n\'.");
-    while(true)
-    {
-        if ((reque.find("\r\n") == reque.find("\r\n\r\n")) && M_U_V[0] != "")
-        {
-            if (reque.find("\r\n") <= reque.find(":") + 1)
-                throw std::runtime_error("Error : key value not as expected key:value");
-            request[reque.substr(0, reque.find(":"))] = reque.substr(reque.find(":") + 1, reque.find("\r\n"));
-            if (reque.length() > reque.find("\r\n") + 4 )
-            break;
-        }
-        else if (M_U_V[0] == "" && reque.find("\r\n") != std::string::npos)
-        {
-            std::stringstream a(reque.substr(0, reque.find("\r\n")));
-            std::string word;
-            int i;
-            for(i = 0; i < 3 && a >> word; i++)
-                M_U_V[i] = word;
-            if (i < 3)
-                throw std::runtime_error("Error : key value not as expected key:value");
-        }
-        else if (reque.find("\r\n") != std::string::npos)
-        {
-            if (reque.find("\r\n") <= reque.find(":") + 1)
-                throw std::runtime_error("Error : key value not as expected key:value");
-            request[reque.substr(0, reque.find(":"))] = reque.substr(reque.find(":") + 1, reque.find("\r\n"));
-        }
-        reque = reque.substr(reque.find("\r\n") + 2, reque.length());
-    }
-    if (M_U_V[0] == "GET")
-        this->getMethode();
-}
-
-void    Client::getMethode()
+void    Client::openFileSendHeader()
 {
     std::string header;
     std::string conType("Content-Type: video/mp4\r\n");
 
-    InFile.open(root + M_U_V[1]);
-    if(!InFile.is_open())
+    InFile->open(root + M_U_V[1]);
+    if(!InFile->is_open())
     {
         std::cout << "error opning file\n";
         exit(0);
     }
-    header = M_U_V[2] + " 200 OK\r\n" + conType + "content-length: " + std::to_string(InFile.size()) + "\r\n\r\n";
+    header = M_U_V[2] + " 200 OK\r\n" + conType + "content-length: " + std::to_string(InFile->size()) + "\r\n\r\n";
     write(fd, header.c_str(), header.length());
 }
 
-void   Client::handleRequest()
+void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
 {
     static int i;
     std::string nBytes;
     std::string response;
 
-    //reque(request);
-    if (request.empty())
-        this->setUp();
-    if (M_U_V[0] == "GET" && InFile)
+    
+    if (FD_ISSET(fd, Rd) || FD_ISSET(fd, Wr))
     {
-        std::cout << "helloword\n";
-        wr = 1;
-        InFile.read(buffer, BUFFER_SIZE - 1);
-        buffer[InFile.gcount()] = 0;
-        write(fd, buffer ,InFile.gcount());
-        if (InFile.eof())
+        if (M_U_V[0] == "GET" && InFile)
         {
-            std::cout << "\33[1;31m ----------------------------------" << i << ">\n\33[0m";
-            InFile.close();
-            write(fd, "\r\n\r\n", 4);
-            request.clear();
-            M_U_V[0] = "";
-            wr = 0;
+            std::cout << "helloword\n";
+            InFile->read(buffer, BUFFER_SIZE - 1);
+            buffer[InFile->gcount()] = 0;
+            write(fd, buffer ,InFile->gcount());
+            if (InFile->eof())
+            {
+                std::cout << "\33[1;31m ----------------------------------" << i << ">\n\33[0m";
+                write(fd, "\r\n\r\n", 4);
+                close(fd);
+                fd = -1;
+            }
+            std::cout << "is_open : " << "\n";
         }
-        std::cout << "is_open : " << "\n";
     }
-
 }
 
 
