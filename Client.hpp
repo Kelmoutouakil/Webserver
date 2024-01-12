@@ -15,6 +15,7 @@ class Client
         char buffer[BUFFER_SIZE];
         Server Serv;
     public:
+        int count;
         std::ofstream *Out;
         InFile *In;
         int fd;

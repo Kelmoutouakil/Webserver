@@ -105,24 +105,31 @@ void    Client::openFileSendHeader()
 }
 void  Client::PostMethode(Client& obj)
 {
-    Server o;
-    std::map<std::string,Location>::iterator it = o.locations.find(M_U_V[1]);
-    if(it != o.locations.end())
+    std::map<std::string,Location>::iterator it = obj.Serv.locations.find(M_U_V[1]);
+    if(it != obj.Serv.locations.end())
     {
         std::vector<std::string>::iterator ite = (it->second).uploads.begin();
-        for(;ite != (it->second).uploads.end();ite++)
-        {
+        
             if(*ite == "on")
             {
                 std::string file = *(ite + 1);
                 Out->open(file+"html",std::ios_base::out | std::ios_base::app);
                 if(Out->is_open())
                 {
-
+                    if(body.length() >= BUFFER_SIZE)
+                    {
+                        *Out << body.substr(0,BUFFER_SIZE);
+                        body.erase(0,BUFFER_SIZE);
+                    }
+                    else
+                    {
+                            *Out<< body;
+                            body.clear();
+                    }
+                }
                 }
             }
-        }
-    }
+        
 }
 
 void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
@@ -149,12 +156,29 @@ void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
             }
             std::cout << "is_open : " << "\n";
         }
-        else if(M_U_V[0] == "POST")
+       else if(M_U_V[0] == "POST")
         {
-            
-            PostMethode(*this);
+            char Store[BUFFER_SIZE];
+            int total  = 0;
+            int content_length;
+            std::map<std::string,std::string> ::iterator it = header.find("Content-Length");
+            if(it != header.end())
+            {
+                content_length = std::stoi(header["Content-Length"]);
+                if(total = read(fd,Store,BUFFER_SIZE) > 0 )
+                {
+                    count += total;
+                    Store[total] = '\0';
+                    body.append(Store);
+                    if(count >= content_length)
+                        fd = -1;
+                    PostMethode(*this);
+                   
+                    
+                }
+            }
         }
     }
 }
 
-
+    
