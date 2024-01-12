@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/08 13:53:46 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/11 14:38:35 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/12 17:35:52 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,9 +103,10 @@ Location  Server::buildClass(std::string v)
         {
             it++;
             if(*it == "off")
-                o.uploads= false;
+                o.uploads.insert(std::make_pair(false,*(it+1)));
             else if(*it == "on")
-                o.uploads = true;
+                o.uploads.insert(std::make_pair(false,*(it+1)));
+
         }
         if(*it == "return")
         {

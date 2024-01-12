@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 11:48:52 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/11 14:41:14 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/12 17:16:06 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ class Location
      std::string root;
     std::vector<std::string> index;
     std::map<int,std::string> Return;
-    bool uploads;
+    std::map<bool,std::string> uploads;
 };
 
 class Server
