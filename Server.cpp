@@ -203,8 +203,8 @@ void Server::run(WebServer & web)
             client[i].handleRequest(&web.FdRd, &web.FdWr);
             if (client[i].fd == -1)
             {
-                delete (client.begin() + i)->InFile;
-                delete (client.begin() + i)->OutFile;
+                delete (client.begin() + i)->In;
+                delete (client.begin() + i)->Out;
                 client.erase(client.begin() + i);
             }
         }
@@ -214,6 +214,6 @@ void Server::run(WebServer & web)
         std::cerr << e.what() << '\n';
     }
     std::cout << "out\n";
-    usleep(1000000);
+    // usleep(1000000);
 
 }

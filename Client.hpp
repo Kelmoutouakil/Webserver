@@ -13,6 +13,7 @@ class Client
         std::string root;
         std::string M_U_V[3];
         char buffer[BUFFER_SIZE];
+        Server Serv;
     public:
         std::ofstream *Out;
         InFile *In;
