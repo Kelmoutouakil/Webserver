@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
+/*   cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include"Server.hpp"
+#include "Server.hpp"
 #include "WebServer.hpp"
 #include<algorithm>
 #include<iterator>
@@ -19,6 +19,7 @@ Server::Server()
 {
     root = "";
     port = -1;
+    fd = -1;
     ipAdress= "";
     serverName.push_back("Default");
     index.push_back("index.html");
@@ -102,11 +103,11 @@ Location  Server::buildClass(std::string v)
         if(*it == "uploads")
         {
             it++;
-            if(*it == "off")
-                o.uploads.insert(std::make_pair(false,*(it+1)));
-            else if(*it == "on")
-                o.uploads.insert(std::make_pair(false,*(it+1)));
-
+            while(*it != ";" && it != helper.end())
+            {
+                o.uploads.push_back(*it);
+                it++;
+            }
         }
         if(*it == "return")
         {
@@ -154,4 +155,68 @@ void Server::setupglobalroot(std::map<std::string,Location> v)
             it->second.root = this->root;
     }
     
+}
+///// ajari
+
+void Server::AddNewClient(fd_set *FdRd, fd_set *FdWr)
+{
+    struct sockaddr_in client_address;
+    socklen_t client_address_len = sizeof(client_address);
+    int client_socket = accept(fd, (struct sockaddr*)&client_address, &client_address_len);
+    if (client_socket == -1) {
+        std::cerr << "Error accepting connection" << std::endl;
+        return;
+    }
+    client.push_back(Client());
+    std::cout << "addnew client\n";
+    client.back().fd = client_socket;
+    FD_SET(client_socket, FdRd);
+    FD_SET(client_socket, FdWr);
+}
+
+void Server::run(WebServer & web)
+{
+    if (fd == -1)
+    {
+        CreationBindListen();
+        std::cout << "hello world \n";
+    }
+    try
+    {
+        std::cout << "---->\n";
+        int maxFd = fd;
+        FD_ZERO(&web.FdRd);
+        FD_ZERO(&web.FdWr);
+        FD_SET(fd, &web.FdRd);
+        for (size_t i = 0; i < client.size(); i++)
+        {
+            (client[i].fd > maxFd) && (maxFd = client[i].fd); 
+            FD_SET(client[i].fd, &web.FdRd);
+            FD_SET(client[i].fd, &web.FdWr);
+        }
+        std::cout << "---->\n";
+        if (select(maxFd + 1, &web.FdRd, &web.FdWr, NULL, NULL) < 0) 
+            exit(EXIT_FAILURE);
+        std::cout << "---->\n";
+
+        if (FD_ISSET(fd, &web.FdRd))
+            AddNewClient(&web.FdRd, &web.FdWr);
+        for (size_t i = 0; i < client.size(); i++)
+        {
+            client[i].handleRequest(&web.FdRd, &web.FdWr);
+            if (client[i].fd == -1)
+            {
+                delete (client.begin() + i)->InFile;
+                delete (client.begin() + i)->OutFile;
+                client.erase(client.begin() + i);
+            }
+        }
+    }
+    catch(const std::exception& e)
+    { 
+        std::cerr << e.what() << '\n';
+    }
+    std::cout << "out\n";
+    usleep(1000000);
+
 }

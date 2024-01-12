@@ -17,21 +17,18 @@
 #include <algorithm>
 #include <string>
 #include <functional>
-#define PORT 8080
-#define BUFFER_SIZE 501
-#include "Client.hpp"
 #include "Server.hpp"
+
+#define BUFFER_SIZE 501
 
 class WebServer 
 {
         
     public:
-        char *conf;
-        std::map<int ,Client> client;
-        std::vector<int> idx;
+        std::string conf;
         fd_set FdRd, FdWr;
         std::vector<Server> servers;
-        WebServer(int, char *av[]);
+        WebServer(int, char **);
 };
 
 void reque(std::vector<std::string > &request);
