@@ -161,16 +161,14 @@ void Server::AddNewClient(fd_set *FdRd, fd_set *FdWr)
 {
     struct sockaddr_in client_address;
     socklen_t client_address_len = sizeof(client_address);
-    int client_socket = accept(fd, (struct sockaddr*)&client_address, &client_address_len);
-    if (client_socket == -1) {
+    int fd_socket = accept(fd, (struct sockaddr*)&client_address, &client_address_len);
+    if (fd_socket == -1) {
         std::cerr << "Error accepting connection" << std::endl;
         return;
     }
-    client.push_back(Client());
-    std::cout << "addnew client\n";
-    client.back().fd = client_socket;
-    FD_SET(client_socket, FdRd);
-    FD_SET(client_socket, FdWr);
+    client.push_back(Client(fd_socket));
+    FD_SET(fd_socket, FdRd);
+    FD_SET(fd_socket, FdWr);
 }
 
 void Server::run(WebServer & web)

@@ -14,11 +14,11 @@ class Client
         std::string M_U_V[3];
         char buffer[BUFFER_SIZE];
     public:
-        std::ofstream *OutFile;
-        InFile *InFile;
+        std::ofstream *Out;
+        InFile *In;
         int fd;
         Client& operator=(const Client &obj);
-        Client();
+        Client(int);
         ~Client();
         Client(const Client &obj);
         void   handleRequest(fd_set *, fd_set *);
