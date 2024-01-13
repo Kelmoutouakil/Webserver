@@ -26,6 +26,7 @@ class Client
         void   handleRequest(fd_set *, fd_set *);
         void   ParseRequest(std::string &);
         void    openFileSendHeader();   
-        void    PostMethode(Client& obj);
+        void    PostMethod(Client obj);
+        void    ChunckedMethod(Client obj);
 };
 
