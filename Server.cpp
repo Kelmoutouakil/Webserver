@@ -166,7 +166,7 @@ void Server::AddNewClient(fd_set *FdRd, fd_set *FdWr)
         std::cerr << "Error accepting connection" << std::endl;
         return;
     }
-    client.push_back(Client(fd_socket));
+    client.push_back(Client(fd_socket, this));
     FD_SET(fd_socket, FdRd);
     FD_SET(fd_socket, FdWr);
 }
