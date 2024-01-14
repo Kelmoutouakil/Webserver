@@ -25,11 +25,10 @@ class Client
         Client(int, Server*);
         ~Client();
         Client(const Client &obj);
-        void   handleRequest(fd_set *, fd_set *);
-        void   ParseRequest(std::string &);
-        void   ParseFirstLine(std::string);
-        void    openFileSendHeader();
-        void    openFileSendHeader();   
+        void    handleRequest(fd_set *, fd_set *);
+        void    ParseRequest(std::string &);
+        void    ParseFirstLine(std::string);
+        void    openFileSendHeader(); 
         void    PostMethod(Client obj);
         void    ChunckedMethod(Client obj);
 };
