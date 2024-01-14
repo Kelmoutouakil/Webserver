@@ -19,8 +19,8 @@
 #include<vector>
 #include"Config.hpp"
 #include "Client.hpp"
-
 class WebServer;
+
 class Location
 {
   public:

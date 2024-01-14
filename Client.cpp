@@ -1,12 +1,12 @@
 #include "Client.hpp"
 #include "WebServer.hpp"
 #include "InFile.hpp"
-Client::Client(int fdsocket)
+#include "Server.hpp"
+
+Client::Client(int Fd,Server *serv) : Serv(serv) ,fd(Fd)
 {
-    root = "/Users/ajari/Desktop/webserver";
     std::string request, n;
     char buffer[BUFFER_SIZE];
-    fd = fdsocket;
     In = new InFile();
     Out = new std::ofstream();
     std::cout << "constructor\n";
@@ -25,12 +25,8 @@ Client::Client(int fdsocket)
             break;
         }
     }
-    std::stringstream first(request.substr(0, request.find("\r\n")));
+    this->ParseFirstLine(request.substr(0, request.find("\r\n")));
     request = request.substr(request.find("\r\n") + 2, request.length());
-    for (int i = 0;i < 3 && first >> M_U_V[i];i++)
-        ;
-    if (!M_U_V[0][0] || !M_U_V[1][0]|| !M_U_V[1][0])
-        throw std::runtime_error("the first line of the header must have three word\n");
     if  (M_U_V[0] == "GET")
     {
         this->openFileSendHeader();
@@ -54,6 +50,7 @@ Client& Client::operator=(const Client &obj)
     Out =  obj.Out;
     In =  obj.In;
     fd = obj.fd;
+    Serv = obj.Serv;
 
     return *this;
 }
@@ -68,6 +65,18 @@ int toup(int t)
     if (t >= 'a' && t <= 'z')
         return t - 32;
     return t;
+}
+
+void   Client::ParseFirstLine(std::string line)
+{
+    std::stringstream first(line);
+
+    for (int i = 0;i < 3 && first >> M_U_V[i];i++)
+        ;
+    if (!M_U_V[0][0] || !M_U_V[1][0]|| !M_U_V[1][0])
+        throw std::runtime_error("the first line of the header must have three word\n");
+    for (M_U_V[1].length()!)
+    M_U_V[1] = Serv->root + M_U_V[1];
 }
 
 void   Client::ParseRequest(std::string &request)
@@ -163,6 +172,7 @@ void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
             {
                 std::cout << "\33[1;31m ----------------------------------" << i << ">\n\33[0m";
                 write(fd, "\r\n\r\n", 4);
+                In->close();
                 close(fd);
                 fd = -1;
             }
