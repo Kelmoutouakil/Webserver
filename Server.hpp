@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 11:48:52 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/11 14:41:14 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/12 18:17:31 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ class Location
      std::string root;
     std::vector<std::string> index;
     std::map<int,std::string> Return;
-    bool uploads;
+    std::vector<std::string> uploads;
 };
 
 class Server
@@ -61,3 +61,4 @@ class Server
     void setupglobalroot(std::map<std::string,Location> v);
  };
 int findEndofBlock(const std::string& conf, int start);
+std::string affect(std::vector<std::string>::iterator it,std::vector<std::string>::iterator e);

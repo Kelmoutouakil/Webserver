@@ -17,6 +17,7 @@ class Client
         char buffer[BUFFER_SIZE];
         Server *Serv;
     public:
+        int count;
         std::ofstream *Out;
         InFile *In;
         int fd;
@@ -28,5 +29,8 @@ class Client
         void   ParseRequest(std::string &);
         void   ParseFirstLine(std::string);
         void    openFileSendHeader();
+        void    openFileSendHeader();   
+        void    PostMethod(Client obj);
+        void    ChunckedMethod(Client obj);
 };
 
