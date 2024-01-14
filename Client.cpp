@@ -43,7 +43,7 @@ Client::Client(const Client &obj)
 {
     *this = obj;
 }
-
+ 
 Client& Client::operator=(const Client &obj)
 {
     for (int i = 0; i < 3; i++)
@@ -103,47 +103,47 @@ void    Client::openFileSendHeader()
     header = M_U_V[2] + " 200 OK\r\n" + conType + "content-length: " + std::to_string(In->size()) + "\r\n\r\n";
     write(fd, header.c_str(), header.length());
 }
-void  Client::PostMethod(Client obj)
-{
+// void  Client::PostMethod(Client obj)
+// {
 
-    if(body.length() >= BUFFER_SIZE)
-    {
-        *Out << body.substr(0,BUFFER_SIZE);
-        body.erase(0,BUFFER_SIZE);
-    }
-    else
-    {
-        *Out<< body;
-        body.clear();
-    }
-}
+//     if(body.length() >= BUFFER_SIZE)
+//     {
+//         *Out << body.substr(0,BUFFER_SIZE);
+//         body.erase(0,BUFFER_SIZE);
+//     }
+//     else
+//     {
+//         *Out<< body;
+//         body.clear();
+//     }
+// }
             
-void Client::ChunckedMethod(Client obj)
-{
+// void Client::ChunckedMethod(Client obj)
+// {
     
-    int i = 0;
-    std::string line;
-    size_t chunkSize;
-    size_t len = body.length();
-    size_t totalSize = BUFFER_SIZE;
-    while(len > 0 &&  totalSize > 0)
-    {
-        i = 0;
-        while(body[i] && body[i] != '\r')
-            line.push_back(body[i++]);
-        i+=2;
-        chunkSize = std::stoi(line,NULL,16);
-        if(chunkSize == 0)
-        {
-            fd = -1;
-            break;
-        }
-        *Out << body.substr(i,chunkSize);
-        body.erase(0,i + chunkSize);
-        len  -= i + chunkSize;
-        totalSize -= i+ chunkSize;
-    }
-}
+//     int i = 0;
+//     std::string line;
+//     size_t chunkSize;
+//     size_t len = body.length();
+//     size_t totalSize = BUFFER_SIZE;
+//     while(len > 0 &&  totalSize > 0)
+//     {
+//         i = 0;
+//         while(body[i] && body[i] != '\r')
+//             line.push_back(body[i++]);
+//         i+=2;
+//         chunkSize = std::stoi(line,NULL,16);
+//         if(chunkSize == 0)
+//         {
+//             fd = -1;
+//             break;
+//         }
+//         *Out << body.substr(i,chunkSize);
+//         body.erase(0,i + chunkSize);
+//         len  -= i + chunkSize;
+//         totalSize -= i+ chunkSize;
+//     }
+// }
 void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
 {
     static int i;
@@ -168,38 +168,39 @@ void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
             }
             std::cout << "is_open : " << "\n";
         }
-       else if(M_U_V[0] == "POST")
-        {
-            char Store[BUFFER_SIZE];
-            int total  = 0;
-            int content_length;
-            std::map<std::string,std::string> ::iterator it = header.find("Content-Length");
-            if(it != header.end())
-            {
-                content_length = std::stoi(header["Content-Length"]);
-                if(total = read(fd,Store,BUFFER_SIZE) > 0 )
-                {
-                    count += total;
-                    Store[total] = '\0';
-                    body.append(Store);
-                    if(count >= content_length)
-                        fd = -1;
-                    PostMethod(*this);     
-                }
-            }
-            else if(header.find("Transfert_Encoding") != header.end())
-            {
-                if(header["Transfert_Encoding"] == "chunked")
-                {
-                    if(total = read(fd,Store,BUFFER_SIZE) > 0 )
-                    {
-                        Store[total] = '\0';
-                        body.append(Store);
-                        ChunckedMethod(*this);
-                    }
-                }
-            }
-        } 
+    //    else if(M_U_V[0] == "POST")
+    //     {
+    //         char Store[BUFFER_SIZE];
+    //         int total  = 0;
+    //         int content_length;
+    //         std::map<std::string,std::string> ::iterator it = header.find("Content-Length");
+    //         if(it != header.end())
+    //         {
+    //             content_length = std::stoi(header["Content-Length"]);
+    //             if(total = read(fd,Store,BUFFER_SIZE) > 0 )
+    //             {
+    //                 count += total;
+    //                 Store[total] = '\0';
+    //                 body.append(Store);
+    //                 if(count >= content_length)
+    //                     fd = -1;
+    //                 PostMethod(*this);     
+    //             }
+    //         }
+    //         else if(header.find("Transfert_Encoding") != header.end())
+    //         {
+    //             if(header["Transfert_Encoding"] == "chunked")
+    //             {
+    //                 if(total = read(fd,Store,BUFFER_SIZE) > 0 )
+    //                 {
+    //                     Store[total] = '\0';
+    //                     body.append(Store);
+    //                     ChunckedMethod(*this);
+    //                 }
+    //             }
+    //         }
+    //     } 
+    
     }
 }
 
