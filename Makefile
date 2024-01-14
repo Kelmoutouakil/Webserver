@@ -1,23 +1,23 @@
 CC = c++
 NAME = webserv
 CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g
-SRC = $(wildcard *.cpp)
 HEADER =$(wildcard *.hpp)
 OBJF = obj
-OBJ = $(SRC:.cpp=.o)
+OBJ = $(patsubst %.cpp, $(OBJF)/%.o, $(wildcard *.cpp))
 
 all: $(NAME)
-$(NAME): $(OBJ) $(HEADER)
+
+$(NAME): $(OBJ) $(HEADER) $(OBJF)
 	$(CC) $(CPPFLAGS) $(OBJ) -o $(NAME)
 
 #%.o:%.cpp
-$(OBJF)/%.o:$(OBJF)/%.cpp
-	$(CC) $(CPPFLAGS) -c -o $@ $^
+$(OBJF)/%.o:%.cpp $(OBJF)
+	$(CC) $(CPPFLAGS) -c -o $@ $<
 $(OBJF):
 	mkdir $(OBJF)
 
 clean:
-	rm -f $(OBJ)
+	rm -f $(OBJF)
 
 fclean: clean
 	rm -f $(NAME)
