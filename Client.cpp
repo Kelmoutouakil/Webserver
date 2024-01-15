@@ -113,21 +113,28 @@ void    Client::openFileSendHeader()
     header = M_U_V[2] + " 200 OK\r\n" + conType + "content-length: " + std::to_string(In->size()) + "\r\n\r\n";
     write(fd, header.c_str(), header.length());
 }
+
+bool fileExists(const std::string& filePath) 
+{
+    struct stat buffer;
+    return (stat(filePath.c_str(), &buffer) == 0);
+}
+
 void  Client::PostMethod(Client obj)
 {
-
-    if(body.length() >= BUFFER_SIZE)
+   
+     if(body.length() >= BUFFER_SIZE)
     {
         *Out << body.substr(0,BUFFER_SIZE);
         body.erase(0,BUFFER_SIZE);
     }
     else
-    {
+    {    
         *Out<< body;
         body.clear();
     }
 }
-            
+
 void Client::ChunckedMethod(Client obj)
 {
     std::string line;
@@ -154,7 +161,7 @@ void Client::ChunckedMethod(Client obj)
         catch(const std::exception& e)
         {
             std::cerr << e.what() << '\n';
-    }  
+        }  
 }
 
 void Client::PostMethodfunc()
@@ -162,33 +169,51 @@ void Client::PostMethodfunc()
     char Store[BUFFER_SIZE];
     int total  = 0;
     int content_length;
-    std::map<std::string,std::string> ::iterator it = header.find("Content-Length");
-    if(it != header.end())
+    std::string filename;
+    if(location)
     {
-        content_length = std::stoi(header["Content-Length"]);
-        if(total = read(fd,Store,BUFFER_SIZE) > 0 )
+        if(location->uploads.size() >= 2 && *(location->uploads.begin()) == "on")
         {
-            count += total;
-            Store[total] = '\0';
-            body.append(Store);
-            if(count >= content_length)
-                fd = -1;
-            PostMethod(*this);     
-        }
-    }
-    else if(header.find("Transfert_Encoding") != header.end())
-    {
-        if(header["Transfert_Encoding"] == "chunked")
-        {
-            if(total = read(fd,Store,BUFFER_SIZE) > 0 )
+            filename = *(location->uploads.begin() + 1);
+            if(fileExists(filename))
+                filename += " file.txt";
+            else
+                std::cout<< "Path not valid\n";
+            Out->open(filename, std::ios::out | std::ios::app);
+            if(!Out->is_open())
+                std::cout<< " error opening file\n";
+            std::map<std::string,std::string> ::iterator it = header.find("Content-Length");
+            if(it != header.end())
+            {
+                content_length = std::stoi(header["Content-Length"]);
+                if(total = read(fd,Store,BUFFER_SIZE) > 0 )
                 {
+                    count += total;
                     Store[total] = '\0';
                     body.append(Store);
-                    ChunckedMethod(*this);
+                    if(count >= content_length)
+                        fd = -1;
+                    PostMethod(*this);    
                 }
+            }
+            else if(header.find("Transfert_Encoding") != header.end())
+            {
+                if(header["Transfert_Encoding"] == "chunked")
+                {
+                    if(total = read(fd,Store,BUFFER_SIZE) > 0 )
+                    {
+                        Store[total] = '\0';
+                        body.append(Store);
+                        ChunckedMethod(*this);
+                    }
+                }
+            }
         }
     }
+    else
+        std::cout<< "location not founnd\n";
 }
+
 void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
 {
     static int i;
