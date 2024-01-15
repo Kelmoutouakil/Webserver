@@ -5,34 +5,8 @@
 
 Client::Client(int Fd,Server *serv) : Serv(serv) ,fd(Fd)
 {
-    std::string request, n;
-    char buffer[BUFFER_SIZE];
     In = new InFile();
     Out = new std::ofstream();
-    std::cout << "constructor\n";
-    while(true)
-    {
-        std::cout << "clear fd: " << fd << "\n";
-        int r = read(fd, buffer, BUFFER_SIZE - 1);
-        std::cout << "clear\n";
-        if (r < 0)
-            throw std::runtime_error("Error reading form client socket:" + std::to_string(fd));
-        buffer[r] = '\0';
-        request += buffer;
-        if (request.find("\r\n\r\n") != std::string::npos)
-        {
-            std::cout << "hello world\n";
-            break;
-        }
-    }
-    this->ParseFirstLine(request.substr(0, request.find("\r\n")));
-    request = request.substr(request.find("\r\n") + 2, request.length());
-    if  (M_U_V[0] == "GET")
-    {
-        this->openFileSendHeader();
-        return ;
-    }
-    this->ParseRequest(request);
 }
 
 Client::Client(const Client &obj)
