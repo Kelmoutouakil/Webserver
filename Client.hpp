@@ -37,5 +37,6 @@ class Client
         void    PostMethod(Client obj);
         void    ChunckedMethod(Client obj);
         void    ReadMore();
+        void    PostMethodfunc();
 };
 
