@@ -173,14 +173,14 @@ void Client::PostMethodfunc()
             {
                 if(header["Transfert_Encoding"] == "chunked")
                 {
-                    if(total = read(fd,Store,BUFFER_SIZE) > 0 )
+                    if(total = read(fd,Store,BUFFER_SIZE) >                                                                                                                                                                                                      0)
                     {
                         Store[total] = '\0';
                         body.append(Store);
                         ChunckedMethod(*this);
                     }
                 }
-            }0000
+            }
         }
     }
     else
