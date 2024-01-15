@@ -5,6 +5,7 @@
 
 //#include "WebServer.hpp"
 #include "InFile.hpp"
+#include <sys/stat.h>
 #include <map>
 class Location;
 class Server;
@@ -38,5 +39,7 @@ class Client
         void    ChunckedMethod(Client obj);
         void    ReadMore();
         void    PostMethodfunc();
+        void    WriteToOutfile();
 };
 
+bool fileExists(const std::string& filePath) ;
