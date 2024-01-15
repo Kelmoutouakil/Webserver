@@ -1,4 +1,3 @@
-
 #include "Client.hpp"
 #include "WebServer.hpp"
 #include "InFile.hpp"
@@ -169,22 +168,8 @@ void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
         if (request.find("\r\n\r\n") == std::string::npos)
             ReadMore();
         if (M_U_V[0] == "GET" && In)
-        {
-            std::cout << "is open:" << In << "\n" << In->is_open() << "\n";
-            In->read(buffer, BUFFER_SIZE - 1);
-            buffer[In->gcount()] = 0;
-            write(fd, buffer ,In->gcount());
-            if (In->eof())
-            {
-                std::cout << "\33[1;31m ----------------------------------" << i << ">\n\33[0m";
-                write(fd, "\r\n\r\n", 4);
-                In->close();
-                close(fd);
-                fd = -1;
-            }
-            std::cout << "is_open : " << "\n";
-        }
-       else if(M_U_V[0] == "POST")
+            getMethode();
+        else if(M_U_V[0] == "POST")
         {
             char Store[BUFFER_SIZE];
             int total  = 0;
