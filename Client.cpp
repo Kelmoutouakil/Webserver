@@ -352,6 +352,8 @@ void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
     std::cout << "hello fd:" <<  fd << std::endl;
     if (FD_ISSET(fd, Rd) || FD_ISSET(fd, Wr))
     {
+        if (request.find("\r\n\r\n") == std::string::npos)
+            ReadMore();
         if (M_U_V[0] == "GET" && In)
         {
             std::cout << "is open:" << In << "\n" << In->is_open() << "\n";
