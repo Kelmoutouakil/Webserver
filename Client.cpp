@@ -75,7 +75,7 @@ void   Client::ParseFirstLine(std::string line)
         ;
     if (!M_U_V[0][0] || !M_U_V[1][0]|| !M_U_V[1][0])
         throw std::runtime_error("the first line of the header must have three word\n");
-    for (M_U_V[1].length()!)
+    for (M_U_V[1].length())
     M_U_V[1] = Serv->root + M_U_V[1];
 }
 
