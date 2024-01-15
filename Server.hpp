@@ -41,7 +41,7 @@ class Server
     void run(WebServer & web);
     Server();
     void CreationBindListen();
-    // std::vector<int> idx;
+    std::map<std::string, std::string> err;
     std::vector<Client> client;
     int fd;
     int port;

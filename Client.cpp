@@ -5,6 +5,7 @@
 
 Client::Client(int Fd,Server *serv) : Serv(serv) ,fd(Fd)
 {
+    location = NULL;
     In = new InFile();
     Out = new std::ofstream();
 }
@@ -29,41 +30,67 @@ Client& Client::operator=(const Client &obj)
     return *this;
 }
 
+void Client::ReadMore()
+{
+    int r = read(fd, buffer, BUFFER_SIZE - 1);
+    if (!r)
+        ServeError("400", " Bad Request\r\n");
+    buffer[r] = 0;
+    request += buffer;
+    if (request.find("\r\n\r\n") != std::string::npos)
+        ParseRequest();
+}
+
 Client::~Client() 
 {
     std::cout << "client destructor called \n";
 }
 
-int toup(int t)
+void    Client::ServeError(const std::string &Error, const std::string &reason)
 {
-    if (t >= 'a' && t <= 'z')
-        return t - 32;
-    return t;
+    std::string response (M_U_V[2]);
+
+    if (!response.length())
+        response = "HTTP/1.0";
+    response = response + " " + Error + reason + "content-type: txt/html\r\n"; 
+    In->open(Serv->errorPages[Error].c_str());
+    if (In->is_open())
+        throw std::runtime_error("Error in opning error file\n");
+    int size = In->size();
+    response += "content-length: " + std::to_string(size) + "\r\n";
+    In->read(buffer, size);
+    buffer[size] = 0;
+    write(fd, response.c_str(), response.length());
+    throw std::runtime_error(Error);
 }
 
 void   Client::ParseFirstLine(std::string line)
 {
     std::stringstream first(line);
 
-    for (int i = 0;i < 3 && first >> M_U_V[i];i++)
+    for (int i = 0;first >> M_U_V[i];i++)
         ;
     if (!M_U_V[0][0] || !M_U_V[1][0]|| !M_U_V[1][0])
-        throw std::runtime_error("the first line of the header must have three word\n");
-    for (M_U_V[1].length()!)
-    M_U_V[1] = Serv->root + M_U_V[1];
+        ServeError("400", " Bad Request\r\n");
+    while (M_U_V[1].length() && Serv->errorPages.find(M_U_V[1]) != Serv->errorPages.end())
+        ;
+    if (Serv->locations.find(M_U_V[1]) != Serv->locations.end())
+        location = &Serv->locations[M_U_V[1]];
+    else
+        ServeError("404", " Not found\r\n");
+    request.substr(request.find("\r\n") + 2 , request.length());
 }
 
-void   Client::ParseRequest(std::string &request)
+void   Client::ParseRequest()
 {
     std::string line;
-    
-    if (request.find("\r\n\r\n") == std::string::npos)
-        throw std::runtime_error("Error : your requestst must end with \'\\r\\n\\r\\n\'.");
+
+    ParseFirstLine(request.substr(0, request.find("\r\n")));
     while(request.find("\r\n\r\n") != std::string::npos)
     {
         line = request.substr(0, request.find("\r\n"));
         if (!(line.find(":") != std::string::npos && (line.length() - std::count(line.begin(), line.end(), ' ') >= 3)))
-            throw std::runtime_error("Error : key value not as expected key:value");
+            ServeError("400", " Bad Request\r\n");
         header[line.substr(0, line.find(":"))] = line.substr(line.find(":" + 1, line.length()));
         request = request.substr(request.find("\r\n") + 2, request.length());
     }
@@ -198,10 +225,12 @@ void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
     {
         if (request.find("\r\n\r\n") == std::string::npos)
             ReadMore();
-        if (M_U_V[0] == "GET" && In)
-            getMethode();
+        else if (M_U_V[0] == "GET" && In)
+            GetMethode();
         else if(M_U_V[0] == "POST")
             PostMethodfunc();
+        else if (M_U_V[0] == "DELETE")
+            DeleteMethode();
     }
 }
 
