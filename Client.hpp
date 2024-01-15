@@ -6,16 +6,20 @@
 //#include "WebServer.hpp"
 #include "InFile.hpp"
 #include <map>
+class Location;
 class Server;
 
 class Client
 {
+        std::string request;
         std::map <std::string, std::string> header;
         std::string body;
         std::string root;
         std::string M_U_V[3];
         char buffer[BUFFER_SIZE];
         Server *Serv;
+        Location *location;
+        std::string status;
     public:
         int count;
         std::ofstream *Out;
@@ -27,9 +31,11 @@ class Client
         Client(const Client &obj);
         void    handleRequest(fd_set *, fd_set *);
         void    ParseRequest(std::string &);
+        void    ParseHeader(std::string &);
         void    ParseFirstLine(std::string);
         void    openFileSendHeader(); 
         void    PostMethod(Client obj);
         void    ChunckedMethod(Client obj);
+        void    ReadMore();
 };
 

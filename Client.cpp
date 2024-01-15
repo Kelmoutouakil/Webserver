@@ -5,34 +5,8 @@
 
 Client::Client(int Fd,Server *serv) : Serv(serv) ,fd(Fd)
 {
-    std::string request, n;
-    char buffer[BUFFER_SIZE];
     In = new InFile();
     Out = new std::ofstream();
-    std::cout << "constructor\n";
-    while(true)
-    {
-        std::cout << "clear fd: " << fd << "\n";
-        int r = read(fd, buffer, BUFFER_SIZE - 1);
-        std::cout << "clear\n";
-        if (r < 0)
-            throw std::runtime_error("Error reading form client socket:" + std::to_string(fd));
-        buffer[r] = '\0';
-        request += buffer;
-        if (request.find("\r\n\r\n") != std::string::npos)
-        {
-            std::cout << "hello world\n";
-            break;
-        }
-    }
-    this->ParseFirstLine(request.substr(0, request.find("\r\n")));
-    request = request.substr(request.find("\r\n") + 2, request.length());
-    if  (M_U_V[0] == "GET")
-    {
-        this->openFileSendHeader();
-        return ;
-    }
-    this->ParseRequest(request);
 }
 
 Client::Client(const Client &obj)
@@ -44,6 +18,7 @@ Client& Client::operator=(const Client &obj)
 {
     for (int i = 0; i < 3; i++)
         M_U_V[i] =  obj.M_U_V[i];
+    request = obj.request;
     header =  obj.header;
     body =  obj.body;
     root =  obj.root;
@@ -60,11 +35,12 @@ Client::~Client()
     std::cout << "client destructor called \n";
 }
 
-int toup(int t)
+void Client::ReadMore()
 {
-    if (t >= 'a' && t <= 'z')
-        return t - 32;
-    return t;
+    int r = read(fd, buffer, BUFFER_SIZE - 1);
+    if (!r)
+        throw Serv->errorPages.find("400");
+    
 }
 
 void   Client::ParseFirstLine(std::string line)
@@ -72,14 +48,22 @@ void   Client::ParseFirstLine(std::string line)
     std::stringstream first(line);
 
     for (int i = 0;i < 3 && first >> M_U_V[i];i++)
-        ;
+    ;
     if (!M_U_V[0][0] || !M_U_V[1][0]|| !M_U_V[1][0])
-        throw std::runtime_error("the first line of the header must have three word\n");
-    for (M_U_V[1].length()!)
+        throw Serv->errorPages.find("400");
+    if (M_U_V[0] != "GET" && M_U_V[0] != "POST" && M_U_V[0] != "DELETE")
+        throw Serv->errorPages.find("405");
+    while (M_U_V[1].length() && Serv->locations.find(M_U_V[1]) !=  Serv->locations.end())
+        M_U_V[1].pop_back();
+    if (Serv->locations.find(M_U_V[1]) != Serv->locations.end())
+    {
+        M_U_V[1] =  Serv->locations[M_U_V[1]].root + M_U_V[1];
+        location = &Serv->locations[M_U_V[1]];
+    }
     M_U_V[1] = Serv->root + M_U_V[1];
 }
 
-void   Client::ParseRequest(std::string &request)
+void   Client::ParseHeader(std::string &request)
 {
     std::string line;
     
@@ -162,22 +146,8 @@ void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
     std::cout << "hello fd:" <<  fd << std::endl;
     if (FD_ISSET(fd, Rd) || FD_ISSET(fd, Wr))
     {
-        if (M_U_V[0] == "GET" && In)
-        {
-            std::cout << "is open:" << In << "\n" << In->is_open() << "\n";
-            In->read(buffer, BUFFER_SIZE - 1);
-            buffer[In->gcount()] = 0;
-            write(fd, buffer ,In->gcount());
-            if (In->eof())
-            {
-                std::cout << "\33[1;31m ----------------------------------" << i << ">\n\33[0m";
-                write(fd, "\r\n\r\n", 4);
-                In->close();
-                close(fd);
-                fd = -1;
-            }
-            std::cout << "is_open : " << "\n";
-        }
+        if (request.find("\r\n\r\n") == std::string::npos)
+            ReadMore();
     //    else if(M_U_V[0] == "POST")
     //     {
     //         char Store[BUFFER_SIZE];
