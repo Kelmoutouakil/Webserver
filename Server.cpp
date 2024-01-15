@@ -174,6 +174,7 @@ void Server::AddNewClient(fd_set *FdRd, fd_set *FdWr)
 
 void Server::run(WebServer & web)
 {
+    size_t i;
     if (fd == -1)
     {
         CreationBindListen();
@@ -186,7 +187,7 @@ void Server::run(WebServer & web)
         FD_ZERO(&web.FdRd);
         FD_ZERO(&web.FdWr);
         FD_SET(fd, &web.FdRd);
-        for (size_t i = 0; i < client.size(); i++)
+        for (i = 0; i < client.size(); i++)
         {
             (client[i].fd > maxFd) && (maxFd = client[i].fd); 
             FD_SET(client[i].fd, &web.FdRd);
@@ -196,23 +197,14 @@ void Server::run(WebServer & web)
         if (select(maxFd + 1, &web.FdRd, &web.FdWr, NULL, NULL) < 0) 
             exit(EXIT_FAILURE);
         std::cout << "---->\n";
-
         if (FD_ISSET(fd, &web.FdRd))
             AddNewClient(&web.FdRd, &web.FdWr);
-        for (size_t i = 0; i < client.size(); i++)
-        {
+        for (i = 0; i < client.size(); i++)
             client[i].handleRequest(&web.FdRd, &web.FdWr);
-            if (client[i].fd == -1)
-            {
-                delete (client.begin() + i)->In;
-                delete (client.begin() + i)->Out;
-                client.erase(client.begin() + i);
-            }
-        }
     }
-    catch(const std::exception& e)
-    { 
-        std::cerr << e.what() << '\n';
+    catch(std::exception& e)
+    {
+        std::cerr << "\33[1;31m" << e.what() << "\33[0m\n";
     }
     std::cout << "out\n";
     // usleep(1000000);
