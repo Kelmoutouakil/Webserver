@@ -164,13 +164,14 @@ void Server::AddNewClient(fd_set *FdRd, fd_set *FdWr)
     socklen_t client_address_len = sizeof(client_address);
     int fd_socket = accept(fd, (struct sockaddr*)&client_address, &client_address_len);
     if (fd_socket == -1) {
-        std::cerr << "Error accepting connection" << std::endl;
+        std::cerr << "Error accepting connection\n" << std::endl;
         return;
     }
+    std::cout << "Nb clients :" << client.size() << "\n";
     client.push_back(Client(fd_socket, this));
     FD_SET(fd_socket, FdRd);
     FD_SET(fd_socket, FdWr);
-    std::cout << "hello add new client \n";
+    std::cout << "\nhello add new client \n";
 }
 
 void Server::run(WebServer & web)
@@ -186,6 +187,7 @@ void Server::run(WebServer & web)
         FD_SET(fd, &web.FdRd);
         for (i = 0; i < client.size(); i++)
         {
+            std::cout << "set fd of clients\n";
             (client[i].fd > maxFd) && (maxFd = client[i].fd); 
             FD_SET(client[i].fd, &web.FdRd);
             FD_SET(client[i].fd, &web.FdWr);

@@ -12,6 +12,7 @@ Client::Client(int Fd,Server *serv) : Serv(serv) ,fd(Fd)
 
 Client::Client(const Client &obj)
 {
+    std::cout << "copy constructor called\n";
     *this = obj;
 }
 
