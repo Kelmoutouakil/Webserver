@@ -156,6 +156,43 @@ void Server::setupglobalroot(std::map<std::string,Location> v)
     }
     
 }
+void Server::funcMimeTypes(std::string& filename)
+{
+    std::ifstream buffer(filename);
+    if(!buffer.is_open())
+        throw std::runtime_error("could not open filename");
+    std::string line;
+    std::string save;
+    while(std::getline(buffer,line))
+        save.append(line);
+    std::vector<std::string> extension;
+    std::istringstream ss(save);
+    std::string key;
+    while(ss >> key && key.find('{') == std::string::npos)
+        continue;
+    while(1)
+    {
+        if( ss >> key && key.find('}') == std::string::npos)
+        {
+            std::string value;
+            while(ss >> value)
+            {
+                if(value[value.length() - 1] == ';')
+                {
+                    extension.push_back(value.substr(0,value.length() - 1));
+                    break;
+                }
+                if(value == ";")
+                    break;
+                extension.push_back(value);
+            }
+            mimeTypes[key] = extension;
+            extension.clear();
+        }
+        else 
+            break;   
+    }
+}
 ///// ajari
 
 void Server::AddNewClient(fd_set *FdRd, fd_set *FdWr)
