@@ -7,11 +7,11 @@ OBJ = $(patsubst %.cpp, $(OBJF)/%.o, $(wildcard *.cpp))
 
 all: $(NAME)
 
-$(NAME): $(OBJ) $(HEADER) $(OBJF)
+$(NAME): $(OBJF) $(OBJ) $(HEADER) 
 	$(CC) $(CPPFLAGS) $(OBJ) -o $(NAME)
 
 #%.o:%.cpp
-$(OBJF)/%.o:%.cpp $(OBJF)
+$(OBJF)/%.o:%.cpp
 	$(CC) $(CPPFLAGS) -c -o $@ $<
 $(OBJF):
 	mkdir $(OBJF)

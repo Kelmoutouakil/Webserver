@@ -20,7 +20,6 @@ class Client
         char buffer[BUFFER_SIZE];
         Server *Serv;
         Location *location;
-        std::string status;
     public:
         int count;
         std::ofstream *Out;
@@ -39,10 +38,9 @@ class Client
         void    ChunckedMethod(Client obj);
         void    ReadMore();
         void    PostMethodfunc();
-        void    GetMethode();
-        void    DeleteMethode();
+        void    GetMethod();
+        void    DeleteMethod();
         void    ServeError(const std::string &, const std::string &);
-        void    WriteToOutfile();
 };
 
 bool fileExists(const std::string& filePath) ;

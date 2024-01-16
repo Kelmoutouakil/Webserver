@@ -156,7 +156,7 @@ void Server::setupglobalroot(std::map<std::string,Location> v)
     }
     
 }
-void Server::funcMimeTypes(std::string& filename)
+void Server::funcMimeTypes(std::string filename)
 {
     std::ifstream buffer(filename);
     if(!buffer.is_open())
@@ -207,19 +207,16 @@ void Server::AddNewClient(fd_set *FdRd, fd_set *FdWr)
     client.push_back(Client(fd_socket, this));
     FD_SET(fd_socket, FdRd);
     FD_SET(fd_socket, FdWr);
+    std::cout << "hello add new client \n";
 }
 
 void Server::run(WebServer & web)
 {
     size_t i;
     if (fd == -1)
-    {
         CreationBindListen();
-        std::cout << "hello world \n";
-    }
     try
     {
-        std::cout << "---->\n";
         int maxFd = fd;
         FD_ZERO(&web.FdRd);
         FD_ZERO(&web.FdWr);
@@ -230,10 +227,9 @@ void Server::run(WebServer & web)
             FD_SET(client[i].fd, &web.FdRd);
             FD_SET(client[i].fd, &web.FdWr);
         }
-        std::cout << "---->\n";
+        std::cout << "waiting ...\n";
         if (select(maxFd + 1, &web.FdRd, &web.FdWr, NULL, NULL) < 0) 
             exit(EXIT_FAILURE);
-        std::cout << "---->\n";
         if (FD_ISSET(fd, &web.FdRd))
             AddNewClient(&web.FdRd, &web.FdWr);
         for (i = 0; i < client.size(); i++)
@@ -241,6 +237,12 @@ void Server::run(WebServer & web)
     }
     catch(std::exception& e)
     {
+        std::cout << "i :" <<  i << std::endl;
+        client[i].In->close();
+        client[i].Out->close();
+        delete client[i].In;
+        delete client[i].Out;
+        client.erase(client.begin() + i);
         std::cerr << "\33[1;31m" << e.what() << "\33[0m\n";
     }
     std::cout << "out\n";

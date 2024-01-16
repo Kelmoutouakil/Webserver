@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 11:48:52 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/16 11:48:22 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/16 11:53:28 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ class Server
     std::vector<Client> client;
     int fd;
     int port;
-    std::map<std::string,std::vector<std::string> >mimeTypes;
+    static std::map<std::string,std::vector<std::string> >mimeTypes;
     std::vector<std::string> serverBlock;
     std::string ipAdress;
     std::vector<std::string> serverName;
@@ -60,7 +60,7 @@ class Server
     std::map<std::string, bool>allow_methods;
     Location  buildClass(std::string v);
     void setupglobalroot(std::map<std::string,Location> v);
-    void  funcMimeTypes(std::string& filename);
+    void  funcMimeTypes(std::string filename);
  };
 int findEndofBlock(const std::string& conf, int start);
 std::string affect(std::vector<std::string>::iterator it,std::vector<std::string>::iterator e);

@@ -14,7 +14,7 @@ Client::Client(const Client &obj)
 {
     *this = obj;
 }
- 
+
 Client& Client::operator=(const Client &obj)
 {
     for (int i = 0; i < 3; i++)
@@ -30,17 +30,6 @@ Client& Client::operator=(const Client &obj)
     return *this;
 }
 
-void Client::ReadMore()
-{
-    int r = read(fd, buffer, BUFFER_SIZE - 1);
-    if (!r)
-        ServeError("400", " Bad Request\r\n");
-    buffer[r] = 0;
-    request += buffer;
-    if (request.find("\r\n\r\n") != std::string::npos)
-        ParseRequest();
-}
-
 Client::~Client() 
 {
     std::cout << "client destructor called \n";
@@ -49,17 +38,16 @@ Client::~Client()
 void    Client::ServeError(const std::string &Error, const std::string &reason)
 {
     std::string response (M_U_V[2]);
-
     if (!response.length())
         response = "HTTP/1.0";
     response = response + " " + Error + reason + "content-type: txt/html\r\n"; 
     In->open(Serv->errorPages[Error].c_str());
-    if (In->is_open())
+    if (!In->is_open())
         throw std::runtime_error("Error in opning error file\n");
     int size = In->size();
-    response += "content-length: " + std::to_string(size) + "\r\n";
     In->read(buffer, size);
     buffer[size] = 0;
+    response += "content-length: " + std::to_string(size) + "\r\n\r\n" + buffer;
     write(fd, response.c_str(), response.length());
     throw std::runtime_error(Error);
 }
@@ -122,7 +110,7 @@ bool fileExists(const std::string& filePath)
 
 void  Client::PostMethod(Client obj)
 {
-   
+   (void)obj;
      if(body.length() >= BUFFER_SIZE)
     {
         *Out << body.substr(0,BUFFER_SIZE);
@@ -137,6 +125,7 @@ void  Client::PostMethod(Client obj)
 
 void Client::ChunckedMethod(Client obj)
 {
+    (void)obj;
     std::string line;
     size_t i;
     size_t chunkSize;
@@ -178,15 +167,15 @@ void Client::PostMethodfunc()
             if(fileExists(filename))
                 filename += " file.txt";
             else
-                std::cout<< "Path not valid\n";
+                ServeError("403"," Forbidden\r\n");
             Out->open(filename, std::ios::out | std::ios::app);
             if(!Out->is_open())
-                std::cout<< " error opening file\n";
+                throw std::runtime_error("Couldn't open file ");
             std::map<std::string,std::string> ::iterator it = header.find("Content-Length");
             if(it != header.end())
             {
                 content_length = std::stoi(header["Content-Length"]);
-                if(total = read(fd,Store,BUFFER_SIZE) > 0 )
+                if(total == read(fd,Store,BUFFER_SIZE) > 0 )
                 {
                     count += total;
                     Store[total] = '\0';
@@ -200,7 +189,7 @@ void Client::PostMethodfunc()
             {
                 if(header["Transfert_Encoding"] == "chunked")
                 {
-                    if(total = read(fd,Store,BUFFER_SIZE) >                                                                                                                                                                                                      0)
+                    if(total == read(fd,Store,BUFFER_SIZE) > 0 )
                     {
                         Store[total] = '\0';
                         body.append(Store);
@@ -211,26 +200,44 @@ void Client::PostMethodfunc()
         }
     }
     else
-        std::cout<< "location not founnd\n";
+        ServeError("404", " Not Found\r\n");
+}
+
+void    Client::GetMethod()
+{
+}
+
+void    Client::DeleteMethod()
+{
+}
+
+void Client::ReadMore()
+{
+    int r = read(fd, buffer, BUFFER_SIZE - 1);
+    if (!r)
+        ServeError("400", " Bad Request\r\n");
+    buffer[r] = 0;
+    request += buffer;
+    if (request.find("\r\n\r\n") != std::string::npos)
+        ParseRequest();
 }
 
 void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
 {
-    static int i;
     std::string nBytes;
     std::string response;
 
-    std::cout << "hello fd:" <<  fd << std::endl;
     if (FD_ISSET(fd, Rd) || FD_ISSET(fd, Wr))
     {
-        if (request.find("\r\n\r\n") == std::string::npos)
+        std::cout << "hello fd:" <<  fd << std::endl;
+        if (header.empty())
             ReadMore();
         else if (M_U_V[0] == "GET" && In)
-            GetMethode();
+            GetMethod();
         else if(M_U_V[0] == "POST")
             PostMethodfunc();
         else if (M_U_V[0] == "DELETE")
-            DeleteMethode();
+            DeleteMethod();
     }
 }
 

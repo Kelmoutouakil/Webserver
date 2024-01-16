@@ -10,4 +10,5 @@ WebServer::WebServer(int ac, char **av)
         conf = "config.conf";
     std::string f = o.ReadFile(conf.c_str());
     servers = o.splitServers(f, 0);
+    servers.begin()->funcMimeTypes("mime.types");
 }
