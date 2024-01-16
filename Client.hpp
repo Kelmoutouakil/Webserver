@@ -41,7 +41,6 @@ class Client
         void    GetMethod();
         void    DeleteMethod();
         void    ServeError(const std::string &, const std::string &);
-        void    WriteToOutfile();
 };
 
 bool fileExists(const std::string& filePath) ;

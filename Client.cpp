@@ -168,10 +168,10 @@ void Client::PostMethodfunc()
             if(fileExists(filename))
                 filename += " file.txt";
             else
-                std::cout<< "Path not valid\n";
+                ServeError("403"," Forbidden\r\n");
             Out->open(filename, std::ios::out | std::ios::app);
             if(!Out->is_open())
-                std::cout<< " error opening file\n";
+                throw std::runtime_error("Couldn't open file ");
             std::map<std::string,std::string> ::iterator it = header.find("Content-Length");
             if(it != header.end())
             {
@@ -201,7 +201,7 @@ void Client::PostMethodfunc()
         }
     }
     else
-        std::cout<< "location not founnd\n";
+        ServeError("404", " Not Found\r\n");
 }
 
 void    Client::GetMethod()

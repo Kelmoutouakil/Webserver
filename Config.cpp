@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/01 09:36:08 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/11 14:37:20 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/16 11:53:11 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -185,14 +185,6 @@ Server  Config::fillServervect(int start, int end, std::string conf)
             else if(*it == "on")
                 o.autoindex = true;
         }
-        // if(*it == "uploads")
-        // {
-        //     it++;
-        //     if(*it == "off")
-        //         o.uploads= false;
-        //     else if(*it == "on")
-        //         o.uploads = true;
-        // }
         if(*it == "allow_methods")
         {
             it++;
