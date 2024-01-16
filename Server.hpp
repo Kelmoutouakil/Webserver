@@ -62,5 +62,6 @@ class Server
     void setupglobalroot(std::map<std::string,Location> v);
     void  funcMimeTypes(std::string filename);
  };
+
 int findEndofBlock(const std::string& conf, int start);
 std::string affect(std::vector<std::string>::iterator it,std::vector<std::string>::iterator e);

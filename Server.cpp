@@ -15,6 +15,8 @@
 #include<algorithm>
 #include<iterator>
 
+std::map<std::string,std::vector<std::string> > Server::mimeTypes;
+
 Server::Server()
 {
     root = "";
@@ -186,7 +188,7 @@ void Server::funcMimeTypes(std::string filename)
                     break;
                 extension.push_back(value);
             }
-            mimeTypes[key] = extension;
+            Server::mimeTypes[key] = extension;
             extension.clear();
         }
         else 

@@ -17,7 +17,7 @@ $(OBJF):
 	mkdir $(OBJF)
 
 clean:
-	rm -f $(OBJF)
+	rm -rf $(OBJF)
 
 fclean: clean
 	rm -f $(NAME)
