@@ -1,6 +1,6 @@
 #pragma once
 #ifndef BUFFER_SIZE
-#define BUFFER_SIZE 501
+#define BUFFER_SIZE 5
 #endif
  
 //#include "WebServer.hpp"

@@ -19,7 +19,7 @@
 #include <functional>
 #include "Server.hpp"
 
-#define BUFFER_SIZE 501
+#define BUFFER_SIZE 5
 
 class WebServer 
 {

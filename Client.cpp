@@ -46,6 +46,7 @@ void    Client::ServeError(const std::string &Error, const std::string &reason)
     if (!In->is_open())
         throw std::runtime_error("Error in opning error file\n");
     int size = In->size();
+    std::cout << "size : " << size << std::endl;
     In->read(buffer, size);
     buffer[size] = 0;
     response += "content-length: " + std::to_string(size) + "\r\n\r\n" + buffer;
