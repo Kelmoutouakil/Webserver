@@ -33,7 +33,7 @@ class Location
     std::map<int,std::string> Return;
     std::vector<std::string> uploads;
 };
-
+ 
 class Server
 {
   public:

@@ -2,7 +2,7 @@
 #ifndef BUFFER_SIZE
 #define BUFFER_SIZE 501
 #endif
-
+ 
 //#include "WebServer.hpp"
 #include "InFile.hpp"
 #include <sys/stat.h>

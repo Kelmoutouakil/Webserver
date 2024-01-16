@@ -5,6 +5,7 @@
 class InFile:public std::ifstream
 {
     public:
+      
         InFile(){}
         size_t size();
 };
