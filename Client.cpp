@@ -287,21 +287,27 @@ void Client::ReadMore()
     if (request.find("\r\n\r\n") != std::string::npos)
     {
         readMore = 0;
+        std::cout << "->" <<  request << "<" << std::endl;
         ParseFirstLine(request.substr(0, request.find("\r\n")));
         if (request == "\r\n")
             return ;
+        std::cout << "->" <<  request << "<" << std::endl;
         while(request.find("\r\n\r\n") != std::string::npos)
         {
             line = request.substr(0, request.find("\r\n"));
             if (!(line.find(":") != std::string::npos && (line.length() - std::count(line.begin(), line.end(), ' ') >= 3)))
                 ServeError("400", " Bad Request\r\n");
             header[line.substr(0, line.find(":"))] = line.substr(line.find(":") + 1);
-            request.erase(request.begin(), request.begin() + request.find("\r\n") + 2);
+            request.erase(request.begin() + 2, request.begin() + request.find("\r\n") + 2);
         }
         if (request.length() > 2)
             body = request.substr(2, request.length());
-        // for (std::map<std::string, std::string >::iterator i = header.begin(); i != header.end(); i++)
-        //     std::cout << ">" << i->first << ":" << i->second << "<" << std::endl;
+        std::map< std::string,std::string> ::iterator it = header.begin();
+        std::cout<< "****************************\n";
+        for(;it != header.end();it++)
+            std::cout<< it->first << " :  "<< it->second <<" \n";
+        std::cout<< "****************************\n";
+
     }
 
 }
@@ -312,10 +318,14 @@ void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
     std::string response;
     if (FD_ISSET(fd, Rd) || FD_ISSET(fd, Wr))
     {
+        std::cout << "hello fd:" <<  fd << std::endl;
         if (readMore)
             ReadMore();
         else if (M_U_V[0] == "GET")
+        {
+            std::cout << "\33[1;32mhello\n\33[0m";
             GetMethod();
+        }
         else if(M_U_V[0] == "POST")
             PostMethodfunc();
         else if (M_U_V[0] == "DELETE")
