@@ -302,7 +302,6 @@ void Client::ReadMore()
         }
         if (request.length() > 2)
             body = request.substr(2, request.length());
-
     }
 
 }
