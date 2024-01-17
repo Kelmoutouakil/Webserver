@@ -154,6 +154,7 @@ std::string findExtension(std::string t)
     std::map<std::string,std::vector<std::string> >::iterator it = Server::mimeTypes.find(t);
     if(it != Server::mimeTypes.end())
         return (*(it->second.begin()));
+    return NULL;
 }
 
 void Client::PostMethodfunc()
