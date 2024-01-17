@@ -155,14 +155,6 @@ std::string Server::parslocation(std::string v)
         v.erase(found, end - found + 1);
         found = v.find("location", found + end + 1);
     }
-    for(std::map<std::string, Location>::iterator i = locations.begin();i != locations.end();i++)
-    {
-        std::cout << ">"<<i->first<< "<"<< std::endl;
-        for (std::vector<std::string >::iterator j = i->second.index.begin(); j != i->second.index.end();j++)
-            std::cout <<" >"<< *j  << "<, ";
-        std::cout << std::endl;
-    }
-    exit(0);
     return v;
 }
 
