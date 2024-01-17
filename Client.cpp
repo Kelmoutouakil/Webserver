@@ -5,6 +5,7 @@
 
 Client::Client(int Fd,Server *serv) : Serv(serv) ,fd(Fd)
 {
+    readMore = 1;
     location = NULL;
     In = new InFile();
     Out = new std::ofstream();
@@ -20,6 +21,7 @@ Client& Client::operator=(const Client &obj)
 {
     for (int i = 0; i < 3; i++)
         M_U_V[i] =  obj.M_U_V[i];
+    readMore = obj.readMore;
     header =  obj.header;
     body =  obj.body;
     root =  obj.root;
@@ -31,7 +33,7 @@ Client& Client::operator=(const Client &obj)
     return *this;
 }
 
-Client::~Client() 
+Client::~Client()
 {
     std::cout << "client destructor called \n";
 }
@@ -45,11 +47,11 @@ void    Client::ServeError(const std::string &Error, const std::string &reason)
     In->open(Serv->errorPages[Error].c_str());
     if (!In->is_open())
         throw std::runtime_error("Error in opning error file\n");
+    std::string body((std::istreambuf_iterator<char>(*In)), std::istreambuf_iterator<char>());
     int size = In->size();
     std::cout << "size : " << size << std::endl;
     In->read(buffer, size);
-    buffer[size] = 0;
-    response += "content-length: " + std::to_string(size) + "\r\n\r\n" + buffer;
+    response = response +  "content-length: " + std::to_string(size) + "\r\n\r\n" + body;
     write(fd, response.c_str(), response.length());
     throw std::runtime_error(Error);
 }
@@ -58,34 +60,27 @@ void   Client::ParseFirstLine(std::string line)
 {
     std::stringstream first(line);
 
-    for (int i = 0;first >> M_U_V[i];i++)
+    for (int i = 0;i < 3 && first >> M_U_V[i];i++)
         ;
     if (!M_U_V[0][0] || !M_U_V[1][0]|| !M_U_V[1][0])
         ServeError("400", " Bad Request\r\n");
-    while (M_U_V[1].length() && Serv->errorPages.find(M_U_V[1]) != Serv->errorPages.end())
-        ;
+    while (M_U_V[1].length() && Serv->locations.find(M_U_V[1]) == Serv->locations.end())
+        M_U_V[1].pop_back();
+    for(std::map<std::string , Location>::iterator i = Serv->locations.begin(); i != Serv->locations.end();i++)
+        std::cout << "\33[1;32mlocation :" << ">" << i->first << "<" << "\n\33[1;32m";
     if (Serv->locations.find(M_U_V[1]) != Serv->locations.end())
+    {
         location = &Serv->locations[M_U_V[1]];
+        if (location->root.back() == '/')
+            location->root.erase(location->root.end() - 1);
+        if (M_U_V[1].back() != '/')
+            M_U_V[1].append("/");
+        location->root.append(M_U_V[1]);
+    }
     else
         ServeError("404", " Not found\r\n");
-    request.substr(request.find("\r\n") + 2 , request.length());
-}
-
-void   Client::ParseRequest()
-{
-    std::string line;
-
-    ParseFirstLine(request.substr(0, request.find("\r\n")));
-    while(request.find("\r\n\r\n") != std::string::npos)
-    {
-        line = request.substr(0, request.find("\r\n"));
-        if (!(line.find(":") != std::string::npos && (line.length() - std::count(line.begin(), line.end(), ' ') >= 3)))
-            ServeError("400", " Bad Request\r\n");
-        header[line.substr(0, line.find(":"))] = line.substr(line.find(":" + 1, line.length()));
-        request = request.substr(request.find("\r\n") + 2, request.length());
-    }
-    if (request.length() > 2)
-        body = request.substr(2, request.length());
+    std::cout << "\33[1;31m hi under serveError\n\33[0m"; 
+    request.erase(request.begin() + 2 , request.end());
 }
 
 void    Client::openFileSendHeader()
@@ -207,6 +202,53 @@ void Client::PostMethodfunc()
 
 void    Client::GetMethod()
 {
+    if (!In->is_open())
+    {
+        for(size_t i = 0;i < location->index.size(); i++)
+        {
+            if (access((location->root + location->index[i]).c_str(), R_OK) != -1)
+            {
+                In->open((location->root + location->index[i]).c_str());
+                if (!In->is_open())
+                {
+                    std::cout << "\33[1;31m not open\n";
+                    throw std::runtime_error("input file not open ?");
+                }
+                std::cout << "\33[1;31mhi------#:" <<  location->root << location->index[i] << "\33[0m\n";
+                break;
+            }
+            if (i == location->index.size() - 1)
+            {
+                std::cout << "\33[1;31mhello------#:" <<  location->root << " " << location->index[i] << "\33[0m\n";
+                ServeError("405", " Not Found\r\n");
+            }
+        }
+    }
+    if (!In->fail())
+    {
+        std::cout << " :" << In->fail() << "\n";
+        In->read(buffer, BUFFER_SIZE - 1);
+        std::cout << " :" << In->fail() << "\n";
+        if (In->fail())
+            throw std::runtime_error("error in the input file GET\n");
+        std::cout << "-----> : " << fd << "\n";
+        std::cout << ">\n";
+        buffer[In->gcount()] = 0;
+        std::cout << "--->###>" << buffer << "<\n" << std::endl;
+        write(1, buffer, (size_t)In->gcount());
+        std::cout << std::flush;
+        // std::cout << "<after wrtie at fd    1\n";
+        write(fd, buffer, (size_t)In->gcount());
+        if (In->eof())
+        {
+
+        }
+            throw std::runtime_error("hello");
+    }
+    else
+        throw std::runtime_error("error in the input file GET\n");
+    std::cout << "out GET\n";
+        
 }
 
 void    Client::DeleteMethod()
@@ -215,13 +257,30 @@ void    Client::DeleteMethod()
 
 void Client::ReadMore()
 {
+    std::string line;
+
     int r = read(fd, buffer, BUFFER_SIZE - 1);
     if (!r)
         ServeError("400", " Bad Request\r\n");
     buffer[r] = 0;
     request += buffer;
     if (request.find("\r\n\r\n") != std::string::npos)
-        ParseRequest();
+    {
+        readMore = 0;
+        ParseFirstLine(request.substr(0, request.find("\r\n")));
+        if (request == "\r\n")
+            return ;
+        while(request.find("\r\n\r\n") != std::string::npos)
+        {
+            line = request.substr(0, request.find("\r\n"));
+            if (!(line.find(":") != std::string::npos && (line.length() - std::count(line.begin(), line.end(), ' ') >= 3)))
+                ServeError("400", " Bad Request\r\n");
+            header[line.substr(0, line.find(":"))] = line.substr(line.find(":" + 1, line.length()));
+            request.erase(request.begin() + 2, request.end());
+        }
+        if (request.length() > 2)
+            body = request.substr(2, request.length());
+    }
 }
 
 void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
@@ -232,10 +291,13 @@ void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
     if (FD_ISSET(fd, Rd) || FD_ISSET(fd, Wr))
     {
         std::cout << "hello fd:" <<  fd << std::endl;
-        if (header.empty())
+        if (readMore)
             ReadMore();
-        else if (M_U_V[0] == "GET" && In)
+        else if (M_U_V[0] == "GET")
+        {
+            std::cout << "\33 [1;32mhello\n\33[0m";
             GetMethod();
+        }
         else if(M_U_V[0] == "POST")
             PostMethodfunc();
         else if (M_U_V[0] == "DELETE")

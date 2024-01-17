@@ -12,6 +12,7 @@ class Server;
 
 class Client
 {
+        bool readMore;
         std::string request;
         std::map <std::string, std::string> header;
         std::string body;
@@ -30,7 +31,6 @@ class Client
         ~Client();
         Client(const Client &obj);
         void    handleRequest(fd_set *, fd_set *);
-        void    ParseRequest();
         void    ParseHeader(std::string &);
         void    ParseFirstLine(std::string );
         void    openFileSendHeader(); 
