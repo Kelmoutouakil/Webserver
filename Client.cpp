@@ -185,7 +185,6 @@ void Client::OpeningFile()
             filename +=("/file" + t);
         else
             filename+=("file" + t);
-        std::cout<< "filename >" << filename << "<\n" ;
     }
     else
         ServeError("403"," Forbidden\r\n");
@@ -309,7 +308,6 @@ void Client::ReadMore()
             std::cout<< it->first << " :  "<< it->second <<" \n";
         std::cout<< "****************************\n";
 
-        exit(0);
     }
 
 }
