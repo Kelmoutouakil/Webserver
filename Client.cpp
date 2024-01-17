@@ -141,6 +141,12 @@ void Client::ChunckedMethod(Client obj)
             std::cerr << e.what() << '\n';
         }  
 }
+std::string findExtension(std::string t)
+{
+    std::map<std::string,std::vector<std::string> >::iterator it = Server::mimeTypes.find(t);
+    if(it != Server::mimeTypes.end())
+        return (*(it->second.begin()));
+}
 
 void Client::PostMethodfunc()
 {
@@ -148,19 +154,27 @@ void Client::PostMethodfunc()
     int total  = 0;
     int content_length;
     std::string filename;
+    std::string t;
     if(location)
     {
         if(location->uploads.size() >= 2 && *(location->uploads.begin()) == "on")
         {
+           if(header.find("Content-Type") != header.end())
+           t = findExtension(header["Content-Type"]);
             filename = *(location->uploads.begin() + 1);
             if(fileExists(filename))
-                filename += " file.txt";
+            {
+                if(filename[filename.length() - 1] != '\\')
+                    filename +=("\file" + t);
+                else
+                    filename+=("file" + t);
+            }
             else
                 ServeError("403"," Forbidden\r\n");
             Out->open(filename, std::ios::out | std::ios::app);
             if(!Out->is_open())
                 throw std::runtime_error("Couldn't open file ");
-            std::map<std::string,std::string> ::iterator it = header.find("Content-Length");
+           std::map<std::string,std::string>::iterator it = header.find("Content-Length");
             if(it != header.end())
             {
                 content_length = std::stoi(header["Content-Length"]);
