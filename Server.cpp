@@ -74,12 +74,12 @@ Location  Server::buildClass(std::string v)
     while(ss >> word)
     {
       i = word.length();
-        if(word[i - 1] == ';')
+        if( word != ";" && word[i - 1] == ';')
         {
             helper.push_back(word.substr(0,i - 1));
             helper.push_back(";");
         }
-        helper.push_back(word);
+         helper.push_back(word);
     }
     std::vector<std::string>::iterator it = helper.begin();
     for(;it != helper.end();it++)

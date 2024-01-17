@@ -86,7 +86,6 @@ void   Client::ParseFirstLine(std::string line)
 
 void    Client::SendHeader(std::string extension)
 {
-    (void)extantion;
     std::string header;
     std::string conType("Content-Type: txt/txt\r\n");
 
