@@ -83,18 +83,10 @@ void   Client::ParseFirstLine(std::string line)
     request.erase(request.begin() + 2 , request.end());
 }
 
-void    Client::openFileSendHeader()
+void    Client::SendHeader(std::string extantion)
 {
     std::string header;
     std::string conType("Content-Type: video/mp4\r\n");
-
-    In->open(root + M_U_V[1]);
-    std::cout << "hi\n" << In << "\n";
-    if(!In->is_open())
-    {
-        std::cout << "error opning file\n";
-        exit(0);
-    }
     header = M_U_V[2] + " 200 OK\r\n" + conType + "content-length: " + std::to_string(In->size()) + "\r\n\r\n";
     write(fd, header.c_str(), header.length());
 }
@@ -225,18 +217,12 @@ void    Client::GetMethod()
             {
                 In->open((location->root + location->index[i]).c_str());
                 if (!In->is_open())
-                {
-                    std::cout << "\33[1;31m not open\n";
                     throw std::runtime_error("input file not open ?");
-                }
-                std::cout << "\33[1;31mhi------#:" <<  location->root << location->index[i] << "\33[0m\n";
-                break;
+                SendHeader((location->root + location->index[i]).substr((location->root + location->index[i]).rfind(".")));
+                return ;
             }
             if (i == location->index.size() - 1)
-            {
-                std::cout << "\33[1;31mhello------#:" <<  location->root << " " << location->index[i] << "\33[0m\n";
                 ServeError("405", " Not Found\r\n");
-            }
         }
     }
     if (!In->fail())
@@ -246,18 +232,9 @@ void    Client::GetMethod()
         std::cout << " :" << In->fail() << "\n";
         if (In->fail())
             throw std::runtime_error("error in the input file GET\n");
-        std::cout << "-----> : " << fd << "\n";
-        std::cout << ">\n";
-        buffer[In->gcount()] = 0;
-        std::cout << "--->###>" << buffer << "<\n" << std::endl;
-        write(1, buffer, (size_t)In->gcount());
         std::cout << std::flush;
-        // std::cout << "<after wrtie at fd    1\n";
         write(fd, buffer, (size_t)In->gcount());
         if (In->eof())
-        {
-
-        }
             throw std::runtime_error("hello");
     }
     else
@@ -310,7 +287,7 @@ void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
             ReadMore();
         else if (M_U_V[0] == "GET")
         {
-            std::cout << "\33 [1;32mhello\n\33[0m";
+            std::cout << "\33[1;32mhello\n\33[0m";
             GetMethod();
         }
         else if(M_U_V[0] == "POST")
