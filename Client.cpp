@@ -185,7 +185,6 @@ void Client::OpeningFile()
             filename +=("/file" + t);
         else
             filename+=("file" + t);
-        std::cout<< "filename >" << filename << "<\n" ;
     }
     else
         ServeError("403"," Forbidden\r\n");
