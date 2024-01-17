@@ -152,7 +152,7 @@ std::string Server::parslocation(std::string v)
             throw std::runtime_error(" block location error in {}");
         locations.insert(std::make_pair(name, buildClass(v.substr(i + 1, end - i - 1))));
         v.erase(found, end - found + 1);
-        found = v.find("location", found + end + 1);
+        found = v.find("location", found + 1);
     }
     return v;
 }
