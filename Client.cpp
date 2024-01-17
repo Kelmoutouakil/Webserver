@@ -303,11 +303,6 @@ void Client::ReadMore()
         if (request.length() > 2)
             body = request.substr(2, request.length());
         std::map< std::string,std::string> ::iterator it = header.begin();
-        std::cout<< "****************************\n";
-        for(;it != header.end();it++)
-            std::cout<< it->first << " :  "<< it->second <<" \n";
-        std::cout<< "****************************\n";
-
     }
 
 }
