@@ -41,6 +41,7 @@ class Client
         void    GetMethod();
         void    DeleteMethod();
         void    ServeError(const std::string &, const std::string &);
+        void    OpeningFile();
 };
 
 bool fileExists(const std::string& filePath) ;

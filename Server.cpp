@@ -70,7 +70,6 @@ Location  Server::buildClass(std::string v)
     std::string word;
     size_t i = 0;
 
-    std::cout << "bock location: >" << v <<"<"<< std::endl;
     std::vector<std::string>helper;
     while(ss >> word)
     {

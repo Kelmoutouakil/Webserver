@@ -1,4 +1,9 @@
 *.o
 a.out
 .vscode
+<<<<<<< HEAD
+webwerver
+Config.conf
+=======
 webwerve
+>>>>>>> be9df7dcaec44fcb50e15a1e99c1adab0e4ecde8
