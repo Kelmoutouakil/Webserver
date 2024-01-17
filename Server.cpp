@@ -244,6 +244,7 @@ void Server::run(WebServer & web)
         std::cout << "i :" <<  i << std::endl;
         client[i].In->close();
         client[i].Out->close();
+        close(client[i].fd);
         delete client[i].In;
         delete client[i].Out;
         client.erase(client.begin() + i);
