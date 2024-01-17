@@ -287,11 +287,9 @@ void Client::ReadMore()
     if (request.find("\r\n\r\n") != std::string::npos)
     {
         readMore = 0;
-        std::cout << "->" <<  request << "<" << std::endl;
         ParseFirstLine(request.substr(0, request.find("\r\n")));
         if (request == "\r\n")
             return ;
-        std::cout << "->" <<  request << "<" << std::endl;
         while(request.find("\r\n\r\n") != std::string::npos)
         {
             line = request.substr(0, request.find("\r\n"));
