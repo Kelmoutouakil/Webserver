@@ -137,45 +137,55 @@ void Client::ChunckedMethod(Client obj)
             totalSize -= i + 2 + chunkSize;
             }
         }
-        catch(const std::exception& e)
-        {
+    catch(const std::exception& e)
+    {
             std::cerr << e.what() << '\n';
-        }  
+    }  
 }
 std::string findExtension(std::string t)
 {
     std::map<std::string,std::vector<std::string> >::iterator it = Server::mimeTypes.find(t);
+   
+
     if(it != Server::mimeTypes.end())
         return (*(it->second.begin()));
-    return NULL;
+    return "";
 }
+void Client::OpeningFile()
+{
+    std::string t;
 
+    std::string filename;
+    if(header.find("Content-Type") != header.end())
+        {
+            t = findExtension(header["Content-Type"]);
+        }
+    filename = *(location->uploads.begin() + 1);
+  
+    if(fileExists(filename))
+    {
+        if(filename[filename.length() - 1] != '/')
+            filename +=("/file" + t);
+        else
+            filename+=("file" + t);
+        std::cout<< "filename >" << filename << "<\n" ;
+    }
+    else
+        ServeError("403"," Forbidden\r\n");
+    Out->open(filename, std::ios::out | std::ios::app);
+    if(!Out->is_open())
+        throw std::runtime_error("Couldn't open file ");
+}
 void Client::PostMethodfunc()
 {
     char Store[BUFFER_SIZE];
     int total  = 0;
     int content_length;
-    std::string filename;
-    std::string t;
     if(location)
     {
         if(location->uploads.size() >= 2 && *(location->uploads.begin()) == "on")
         {
-           if(header.find("Content-Type") != header.end())
-           t = findExtension(header["Content-Type"]);
-            filename = *(location->uploads.begin() + 1);
-            if(fileExists(filename))
-            {
-                if(filename[filename.length() - 1] != '\\')
-                    filename +=("\file" + t);
-                else
-                    filename+=("file" + t);
-            }
-            else
-                ServeError("403"," Forbidden\r\n");
-            Out->open(filename, std::ios::out | std::ios::app);
-            if(!Out->is_open())
-                throw std::runtime_error("Couldn't open file ");
+            OpeningFile();
            std::map<std::string,std::string>::iterator it = header.find("Content-Length");
             if(it != header.end())
             {
@@ -203,6 +213,8 @@ void Client::PostMethodfunc()
                 }
             }
         }
+        else
+            ServeError("403", " Forbidden\r\n");
     }
     else
         ServeError("404", " Not Found\r\n");
@@ -273,14 +285,23 @@ void Client::ReadMore()
         }
         if (request.length() > 2)
             body = request.substr(2, request.length());
+        std::map< std::string,std::string> ::iterator it = header.begin();
+        std::cout<< "****************************\n";
+        for(;it != header.end();it++)
+        {
+            std::cout<< it->first << " :  "<< it->second <<" \n";
+        }
+        std::cout<< "****************************\n";
+
+        exit(0);
     }
+
 }
 
 void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
 {
     std::string nBytes;
     std::string response;
-
     if (FD_ISSET(fd, Rd) || FD_ISSET(fd, Wr))
     {
         std::cout << "hello fd:" <<  fd << std::endl;
