@@ -66,6 +66,7 @@ void   Client::ParseFirstLine(std::string line)
         ServeError("400", " Bad Request\r\n");
     while (M_U_V[1].length() && Serv->locations.find(M_U_V[1]) == Serv->locations.end())
         M_U_V[1].pop_back();
+        std::cout << "location name :" << M_U_V[1] << "<";
     for(std::map<std::string , Location>::iterator i = Serv->locations.begin(); i != Serv->locations.end();i++)
         std::cout << "\33[1;32mlocation :" << ">" << i->first << "<" << "\n\33[1;32m";
     if (Serv->locations.find(M_U_V[1]) != Serv->locations.end())
@@ -83,12 +84,27 @@ void   Client::ParseFirstLine(std::string line)
     request.erase(request.begin() + 2 , request.end());
 }
 
-void    Client::SendHeader(std::string extantion)
+void    Client::SendHeader(std::string extension)
 {
     std::string header;
-    std::string conType("Content-Type: video/mp4\r\n");
+    std::string conType("Content-Type: txt/txt\r\n");
+
+    for (std::map<std::string, std::vector<std::string> >::iterator i = Serv->mimeTypes.begin(); i != Serv->mimeTypes.end();i++)
+    {
+        for (std::vector<std::string>::iterator j = i->second.begin(); j != i->second.end(); j++)
+        {
+            if (extension == *j)
+            {
+                conType = i->first;
+                break;
+            }
+        }
+    }
+    In->read(buffer, BUFFER_SIZE - 1);
     header = M_U_V[2] + " 200 OK\r\n" + conType + "content-length: " + std::to_string(In->size()) + "\r\n\r\n";
-    write(fd, header.c_str(), header.length());
+    header.insert(header.begin() + header.length(), buffer, buffer + In->gcount());
+    write(fd, header.c_str(), header.size());
+    std::cout << std::flush;
 }
 
 bool fileExists(const std::string& filePath) 
@@ -146,6 +162,7 @@ std::string findExtension(std::string t)
     std::map<std::string,std::vector<std::string> >::iterator it = Server::mimeTypes.find(t);
     if(it != Server::mimeTypes.end())
         return (*(it->second.begin()));
+    return (t); // modifieted for compiling by abdo
 }
 
 void Client::PostMethodfunc()
@@ -226,18 +243,15 @@ void    Client::GetMethod()
     }
     if (!In->fail())
     {
-        std::cout << " :" << In->fail() << "\n";
+        std::cout << "fail :" << In->fail() << "\n";
         In->read(buffer, BUFFER_SIZE - 1);
-        std::cout << " :" << In->fail() << "\n";
-        if (In->fail())
-            throw std::runtime_error("error in the input file GET\n");
-        std::cout << std::flush;
         write(fd, buffer, (size_t)In->gcount());
+        std::cout << std::flush;
         if (In->eof())
             throw std::runtime_error("hello");
     }
     else
-        throw std::runtime_error("error in the input file GET\n");
+        throw std::runtime_error("error in the input file G2ET\n");
     std::cout << "out GET\n";
         
 }
