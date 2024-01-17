@@ -1,5 +1,5 @@
 #include "WebServer.hpp"
-
+WebServer::WebServer() {}
 WebServer::WebServer(int ac, char **av)
 {
     Config o;
