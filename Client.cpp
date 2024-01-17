@@ -87,23 +87,25 @@ void   Client::ParseFirstLine(std::string line)
 void    Client::SendHeader(std::string extension)
 {
     std::string header;
-    std::string conType("Content-Type: txt/txt\r\n");
+    std::string conType("txt/txt\r\n");
 
+    std::cout << "extension :>" << extension << "<" << std::endl;
     for (std::map<std::string, std::vector<std::string> >::iterator i = Serv->mimeTypes.begin(); i != Serv->mimeTypes.end();i++)
     {
+        std::cout << "content-type:" << i->first << "<" << std::endl;
         for (std::vector<std::string>::iterator j = i->second.begin(); j != i->second.end(); j++)
         {
             if (extension == *j)
             {
+                std::cout << "enter \n";
                 conType = i->first;
                 break;
             }
         }
     }
-    In->read(buffer, BUFFER_SIZE - 1);
-    header = M_U_V[2] + " 200 OK\r\n" + conType + "content-length: " + std::to_string(In->size()) + "\r\n\r\n";
-    header.insert(header.begin() + header.length(), buffer, buffer + In->gcount());
-    write(fd, header.c_str(), header.size());
+    header = M_U_V[2] + " 200 OK\r\ncontent-type: " + conType + "\r\ncontent-length: " + std::to_string(In->size()) + "\r\n\r\n";
+    std::cout << ">" << header << "<" <<  std::endl;
+    write(fd, header.c_str(), header.length());
     std::cout << std::flush;
 }
 
@@ -241,12 +243,14 @@ void    Client::GetMethod()
     {
         for(size_t i = 0;i < location->index.size(); i++)
         {
+            std::cout << ">" << location->index[i] << "<" << std::endl;
             if (access((location->root + location->index[i]).c_str(), R_OK) != -1)
             {
+                // std::cout << location->root << location->index[i] << std::endl;
                 In->open((location->root + location->index[i]).c_str());
                 if (!In->is_open())
                     throw std::runtime_error("input file not open ?");
-                SendHeader((location->root + location->index[i]).substr((location->root + location->index[i]).rfind(".")));
+                SendHeader((location->root + location->index[i]).substr((location->root + location->index[i]).rfind(".") + 1));
                 return ;
             }
             if (i == location->index.size() - 1)

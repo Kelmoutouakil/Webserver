@@ -19,12 +19,13 @@
 #include <functional>
 #include "Server.hpp"
 
-#define BUFFER_SIZE 5
+#define BUFFER_SIZE 501
 
 class WebServer 
 {
         
     public:
+        WebServer();
         std::string conf;
         fd_set FdRd, FdWr;
         std::vector<Server> servers;
