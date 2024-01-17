@@ -66,9 +66,9 @@ void   Client::ParseFirstLine(std::string line)
         ServeError("400", " Bad Request\r\n");
     while (M_U_V[1].length() && Serv->locations.find(M_U_V[1]) == Serv->locations.end())
         M_U_V[1].pop_back();
-        std::cout << "location name :" << M_U_V[1] << "<";
-    for(std::map<std::string , Location>::iterator i = Serv->locations.begin(); i != Serv->locations.end();i++)
-        std::cout << "\33[1;32mlocation :" << ">" << i->first << "<" << "\n\33[1;32m";
+        // std::cout << "location name :" << M_U_V[1] << "<";
+    // for(std::map<std::string , Location>::iterator i = Serv->locations.begin(); i != Serv->locations.end();i++)
+    //     std::cout << "\33[1;32mlocation :" << ">" << i->first << "<" << "\n\33[1;32m";
     if (Serv->locations.find(M_U_V[1]) != Serv->locations.end())
     {
         location = &Serv->locations[M_U_V[1]];
@@ -81,7 +81,7 @@ void   Client::ParseFirstLine(std::string line)
     else
         ServeError("404", " Not found\r\n");
     std::cout << "\33[1;31m hi under serveError\n\33[0m"; 
-    request.erase(request.begin() + 2 , request.end());
+    request.erase(request.begin(), request.begin() + request.find("\r\n") + 2);
 }
 
 void    Client::SendHeader(std::string extension)
@@ -288,25 +288,25 @@ void Client::ReadMore()
     if (request.find("\r\n\r\n") != std::string::npos)
     {
         readMore = 0;
+        std::cout << "->" <<  request << "<" << std::endl;
         ParseFirstLine(request.substr(0, request.find("\r\n")));
         if (request == "\r\n")
             return ;
+        std::cout << "->" <<  request << "<" << std::endl;
         while(request.find("\r\n\r\n") != std::string::npos)
         {
             line = request.substr(0, request.find("\r\n"));
             if (!(line.find(":") != std::string::npos && (line.length() - std::count(line.begin(), line.end(), ' ') >= 3)))
                 ServeError("400", " Bad Request\r\n");
-            header[line.substr(0, line.find(":"))] = line.substr(line.find(":" + 1, line.length()));
-            request.erase(request.begin() + 2, request.end());
+            header[line.substr(0, line.find(":"))] = line.substr(line.find(":") + 1);
+            request.erase(request.begin() + 2, request.begin() + request.find("\r\n") + 2);
         }
         if (request.length() > 2)
             body = request.substr(2, request.length());
         std::map< std::string,std::string> ::iterator it = header.begin();
         std::cout<< "****************************\n";
         for(;it != header.end();it++)
-        {
             std::cout<< it->first << " :  "<< it->second <<" \n";
-        }
         std::cout<< "****************************\n";
 
         exit(0);
