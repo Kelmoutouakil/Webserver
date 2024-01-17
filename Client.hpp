@@ -33,7 +33,7 @@ class Client
         void    handleRequest(fd_set *, fd_set *);
         void    ParseHeader(std::string &);
         void    ParseFirstLine(std::string );
-        void    openFileSendHeader(); 
+        void    SendHeader(std::string); 
         void    PostMethod(Client obj);
         void    ChunckedMethod(Client obj);
         void    ReadMore();
