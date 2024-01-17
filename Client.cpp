@@ -85,6 +85,7 @@ void   Client::ParseFirstLine(std::string line)
 
 void    Client::SendHeader(std::string extantion)
 {
+    (void)extantion;
     std::string header;
     std::string conType("Content-Type: video/mp4\r\n");
     header = M_U_V[2] + " 200 OK\r\n" + conType + "content-length: " + std::to_string(In->size()) + "\r\n\r\n";
