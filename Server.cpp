@@ -70,7 +70,7 @@ Location  Server::buildClass(std::string v)
     std::string word;
     size_t i = 0;
 
-    std::cout << "bock location: " << v << std::endl;
+    std::cout << "bock location: >" << v <<"<"<< std::endl;
     std::vector<std::string>helper;
     while(ss >> word)
     {
@@ -137,10 +137,15 @@ std::string Server::parslocation(std::string v)
         while (v[i] && (v[i] == ' ' || v[i] == '\t'))
             i++;
         name.clear();  
-        while (v[i] != '{')
+        while(v[i] && v[i] != '\n' && v[i] != ' ' && v[i] != '\t' &&  v[i] != '{')
         {
-            if (v[i] != '\n')
-                name.push_back(v[i]);
+            name.push_back(v[i]);
+            i++;
+        }
+        while(v[i] && v[i] != '{')
+        {
+            if(!isspace(v[i]) &&  v[i] != '\n' )
+                throw std::runtime_error(" eroor in name location");
             i++;
         }
         int end = findEndofBlock(v, i + 1);
@@ -149,13 +154,6 @@ std::string Server::parslocation(std::string v)
         locations.insert(std::make_pair(name, buildClass(v.substr(i + 1, end - i - 1))));
         v.erase(found, end - found + 1);
         found = v.find("location", found + end + 1);
-    }
-    for(std::map<std::string, Location>::iterator i = locations.begin();i != locations.end();i++)
-    {
-        std::cout << i->first << std::endl;
-        for (std::vector<std::string >::iterator j = i->second.index.begin(); j != i->second.index.end();j++)
-            std::cout << *j  << ", ";
-        std::cout << std::endl;
     }
     return v;
 }
