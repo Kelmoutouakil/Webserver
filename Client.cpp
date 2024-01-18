@@ -130,20 +130,9 @@ bool fileExists(const std::string filePath)
 
 void  Client::PostMethod(Client obj)
 {
-   (void)obj;
-    if(body.length() >= BUFFER_SIZE)
-    {
-        std::cout<< "HERE  I AM ==============N\n";
-        *Out << body.substr(0,BUFFER_SIZE);
-        body.erase(0,BUFFER_SIZE);
-        throw std::runtime_error("");
-    }
-    else
-    {  
+        (void)obj;
         *Out<< body;;
         body.clear();
-        throw std::runtime_error("");
-    }
 }
 
 void Client::ChunckedMethod(Client obj)
@@ -184,24 +173,21 @@ std::string findExtension(std::string t)
 }
 void Client::OpeningFile()
 {
-   // std::string t;
-
+    std::string t;
     std::string filename;
-   // std::cout << "   header : >" << header["Content-Type"]<<"<\n";
-   // if(header.find("Content-Type") != header.end())
-        // t = findExtension(header["Content-Type"]);
-        //t = findExtension("text.html");
+    t = findExtension(header["Content-Type"]);
+    std::srand(time(NULL));
+    std::string name  = std::to_string(std::rand() % 100 + 1) + "." + t;
     filename = *(location->uploads.begin() + 1);
-    // if(fileExists(filename))
-    // {
-    //     if(filename[filename.length() - 1] != '/')
-            filename +=("/file.html");
-    //     else
-    //         filename+=("file" + t);
-    // }
-    // else
-       // ServeError("403"," Forbidden\r\n");
-  //  std::cout<< ">>" << t << "<<<\n";
+    if(fileExists(filename))
+    {
+        if(filename[filename.length() - 1] != '/')
+            filename +=("/" + name );
+        else
+            filename+= name;
+    }
+    else
+       ServeError("403"," Forbidden\r\n");
     Out->open(filename, std::ios::out | std::ios::app);
     if(!Out->is_open())
         throw std::runtime_error("Couldn't open file ");
@@ -211,14 +197,8 @@ void Client::PostMethodfunc()
     char Store[BUFFER_SIZE];
     int total  = 0;
     int content_length;
-    //  std::map<std::string,std::string> ::iterator it  = header.begin();
-    //  std::cout<< "*******************************\n";
-    //  for(;it != header.end();it++)
-    //     std::cout << it->first << "  : >" << it->second<< "<\n";
-    //  std::cout<< "*******************************\n";   
     if(location->uploads.size() >= 2 && *(location->uploads.begin()) == "on")
-    {
-        
+    { 
         std::map<std::string,std::string>::iterator it = header.find("Content-Length");
         if(it != header.end())
         {
@@ -226,28 +206,37 @@ void Client::PostMethodfunc()
             {
                 OpeningFile();
                 count  = body.length();
+                check = 0;
                 std::cout << count << "< count\n";
             }
             content_length = std::stoi(header["Content-Length"]);
             if( body.length() >= (size_t)content_length)
+            {
                 PostMethod(*this);
+                write(fd,M_U_V[2].c_str(),M_U_V[2].length());
+                write(fd," 200 OK\r\n",9);
+                write(fd,"Content-Type: ",14);
+                write(fd,header["Content-Type"].c_str(),header["Content-Type"].length());
+                write(fd,"\r\nstatus: success\r\nmessage: File successfully uploaded\r\n\n",64);
+                throw std::runtime_error("");
+            } 
             total = read(fd,Store,BUFFER_SIZE - 1);
-             std::cout << count << "< total\n";
-            
+            std::cout << count << "< total\n";
             if  (total > 0 )
             {
-                std::cout << "heere\n";
                 count += total;
-             std::cout << total << "< total\n";
-
                 Store[total] = '\0';
                 body.append(Store);
+                PostMethod(*this);
                 if(count >= content_length)
                 {
-                    PostMethod(*this);    
-                    // throw std::runtime_error("");
+                    write(fd,M_U_V[2].c_str(),M_U_V[2].length());
+                    write(fd," 200 OK\r\n",9);
+                    write(fd,"Content-Type: ",14);
+                    write(fd,header["Content-Type"].c_str(),header["Content-Type"].length());
+                    write(fd,"\r\nstatus: success\r\nmessage: File successfully uploaded\r\n\n",64);
+                    throw std::runtime_error("");
                 }
-                PostMethod(*this);
             }
         }
         else if(header.find("Transfert_Encoding") != header.end())
@@ -264,7 +253,7 @@ void Client::PostMethodfunc()
         }
     }
     else
-    ServeError("403", " Forbidden\r\n");
+        ServeError("403", " Forbidden\r\n");
 }
 
 void    Client::GetMethod()
