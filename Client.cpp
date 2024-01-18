@@ -40,6 +40,14 @@ Client::~Client()
     std::cout << "client destructor called \n";
 }
 
+void Header(std::map<std::string, std::string> header)
+{
+    std::cout << "\n\33[1;32m";
+    for (std::map<std::string , std::string>::iterator i = header.begin(); i != header.end(); i++)
+        std::cout << "key:" << i->first << "|value:" << i->second << "|\n";
+    std::cout << "\33[0m\n";
+}
+
 void    Client::ServeError(const std::string &Error, const std::string &reason)
 {
     std::string response (M_U_V[2]);
@@ -82,7 +90,6 @@ void   Client::ParseFirstLine(std::string line)
     }
     else
         ServeError("404", " Not found\r\n");
-    std::cout << "\33[1;31m hi under serveError\n\33[0m"; 
     request.erase(request.begin(), request.begin() + request.find("\r\n") + 2);
 }
 
@@ -105,8 +112,7 @@ void    Client::SendHeader(std::string extension)
             }
         }
     }
-    header = M_U_V[2] + " 200 OK\r\ncontent-type: " + conType + "\r\ncontent-length: " + std::to_string(In->size()) + "\r\n\r\n";
-    std::cout << ">" << header << "<" <<  std::endl;
+    header = M_U_V[2] + " 200 OK\r\nContent-Type: " + conType + "\r\nTransfer-Encoding: Chunked\r\n\r\n";
     write(fd, header.c_str(), header.length());
     std::cout << std::flush;
 }
@@ -127,16 +133,15 @@ void  Client::PostMethod(Client obj)
    (void)obj;
     if(body.length() >= BUFFER_SIZE)
     {
-        std::cout << "body : " << body << "\n"; 
+        std::cout<< "HERE  I AM ==============N\n";
         *Out << body.substr(0,BUFFER_SIZE);
         body.erase(0,BUFFER_SIZE);
+        throw std::runtime_error("");
     }
     else
-    {   
-        std::cout<< body << "******************\n\n";
+    {  
         *Out<< body;;
         body.clear();
-        check = -1;
         throw std::runtime_error("");
     }
 }
@@ -214,16 +219,15 @@ void Client::PostMethodfunc()
     //  std::cout<< "*******************************\n";   
     if(location->uploads.size() >= 2 && *(location->uploads.begin()) == "on")
     {
-        OpeningFile();
+        
         std::map<std::string,std::string>::iterator it = header.find("Content-Length");
         if(it != header.end())
         {
             if(check == -1)
             {
-               
+                OpeningFile();
                 count  = body.length();
                 std::cout << count << "< count\n";
-                check = 0;
             }
             content_length = std::stoi(header["Content-Length"]);
             if( body.length() >= (size_t)content_length)
@@ -341,8 +345,7 @@ void Client::ReadMore()
             ParseKeyValue(request.substr(0, request.find("\r\n")));
         if (request.length() > 2)
             body = request.substr(2, request.length());
-        // for (std::map<std::string , std::string>::iterator i = header.begin(); i != header.end(); i++)
-        //     std::cout << "key:" << i->first << ";value" << i->second << "|\n";
+        Header(header);
     }
 
 }
