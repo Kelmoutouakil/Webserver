@@ -191,7 +191,6 @@ void Client::OpeningFile()
    // if(header.find("Content-Type") != header.end())
         // t = findExtension(header["Content-Type"]);
         //t = findExtension("text.html");
-
     filename = *(location->uploads.begin() + 1);
     // if(fileExists(filename))
     // {
@@ -341,7 +340,7 @@ void Client::ReadMore()
         ParseFirstLine(request.substr(0, request.find("\r\n")));
         if (request == "\r\n")
             return ;
-        while(request.find("\r\n\r\n") != request.find("\r\n"))
+        while(request.find("\r\n\r\n") != std::string::npos)
             ParseKeyValue(request.substr(0, request.find("\r\n")));
         if (request.length() > 2)
             body = request.substr(2, request.length());
