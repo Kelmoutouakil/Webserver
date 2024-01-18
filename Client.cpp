@@ -29,6 +29,7 @@ Client& Client::operator=(const Client &obj)
     Out =  obj.Out;
     In =  obj.In;
     fd = obj.fd;
+    check = obj.check;
     Serv = obj.Serv;
 
     return *this;
@@ -132,6 +133,7 @@ void  Client::PostMethod(Client obj)
     }
     else
     {   
+        std::cout<< body << "******************\n\n";
         *Out<< body;;
         body.clear();
         check = -1;
@@ -180,7 +182,7 @@ void Client::OpeningFile()
    // std::string t;
 
     std::string filename;
-    std::cout << "   header : >" << header["Content-Type"]<<"<\n";
+   // std::cout << "   header : >" << header["Content-Type"]<<"<\n";
    // if(header.find("Content-Type") != header.end())
         // t = findExtension(header["Content-Type"]);
         //t = findExtension("text.html");
@@ -205,57 +207,61 @@ void Client::PostMethodfunc()
     char Store[BUFFER_SIZE];
     int total  = 0;
     int content_length;
-    if(location)
+    //  std::map<std::string,std::string> ::iterator it  = header.begin();
+    //  std::cout<< "*******************************\n";
+    //  for(;it != header.end();it++)
+    //     std::cout << it->first << "  : >" << it->second<< "<\n";
+    //  std::cout<< "*******************************\n";   
+    if(location->uploads.size() >= 2 && *(location->uploads.begin()) == "on")
     {
-        if(location->uploads.size() >= 2 && *(location->uploads.begin()) == "on")
+        OpeningFile();
+        std::map<std::string,std::string>::iterator it = header.find("Content-Length");
+        if(it != header.end())
         {
-            OpeningFile();
-           std::map<std::string,std::string>::iterator it = header.find("Content-Length");
-           std::cout <<"****>"<< header["Content-Length"]<< "<*******\n";
-            if(it != header.end())
+            if(check == -1)
             {
-                if(check == -1)
-                {
-                    std::cout<< "check";
-                    count  = body.length();
-                    check = 0;
-                }
-                content_length = std::stoi(header["Content-Length"]);
-                if( body.length() >= (size_t)content_length)
-                    PostMethod(*this);
-                else if (total == read(fd,Store,BUFFER_SIZE) > 0 )
-                {
-                    count += total;
-                    Store[total] = '\0';
-                    std::cout<< Store << "\n";
-                    body.append(Store);
-                    if(count >= content_length)
-                    {
-                        PostMethod(*this);    
-                        throw std::runtime_error("");
-                    }
-                    PostMethod(*this);
-                }
-    
+               
+                count  = body.length();
+                std::cout << count << "< count\n";
+                check = 0;
             }
-            else if(header.find("Transfert_Encoding") != header.end())
+            content_length = std::stoi(header["Content-Length"]);
+            if( body.length() >= (size_t)content_length)
+                PostMethod(*this);
+            total = read(fd,Store,BUFFER_SIZE - 1);
+             std::cout << count << "< total\n";
+            
+            if  (total > 0 )
             {
-                if(header["Transfert_Encoding"] == "chunked")
+                std::cout << "heere\n";
+                count += total;
+             std::cout << total << "< total\n";
+
+                Store[total] = '\0';
+                body.append(Store);
+                if(count >= content_length)
                 {
-                    if(total == read(fd,Store,BUFFER_SIZE) > 0 )
-                    {
-                        Store[total] = '\0';
-                        body.append(Store);
-                        ChunckedMethod(*this);
-                    }
+                    PostMethod(*this);    
+                    // throw std::runtime_error("");
+                }
+                PostMethod(*this);
+            }
+        }
+        else if(header.find("Transfert_Encoding") != header.end())
+        {
+            if(header["Transfert_Encoding"] == "chunked")
+            {
+                if(total == read(fd,Store,BUFFER_SIZE) > 0 )
+                {
+                    Store[total] = '\0';
+                    body.append(Store);
+                    ChunckedMethod(*this);
                 }
             }
         }
-        else
-            ServeError("403", " Forbidden\r\n");
     }
     else
-        ServeError("404", " Not Found\r\n");
+    ServeError("403", " Forbidden\r\n");
 }
 
 void    Client::GetMethod()

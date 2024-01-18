@@ -14,6 +14,7 @@ class Client
 {
         bool readMore;
         std::string request;
+        std::string response;
         std::map <std::string, std::string> header;
         std::string body;
         std::string root;
