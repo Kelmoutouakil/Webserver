@@ -103,7 +103,7 @@ void    Client::SendHeader(std::string extension)
             }
         }
     }
-    header = M_U_V[2] + " 200 OK\r\ncontent-type: " + conType + "\r\ncontent-length: " + std::to_string(In->size()) + "\r\n\r\n";
+    header = M_U_V[2] + " 200 OK\r\nContent-Type: " + conType + "\r\nTransfer-Encoding: Chunked\r\n\r\n";
     std::cout << ">" << header << "<" <<  std::endl;
     write(fd, header.c_str(), header.length());
     std::cout << std::flush;
@@ -238,6 +238,7 @@ void Client::PostMethodfunc()
 
 void    Client::GetMethod()
 {
+    std::stringstream n;
     if (!In->is_open())
     {
         for(size_t i = 0;i < location->index.size(); i++)
@@ -253,22 +254,25 @@ void    Client::GetMethod()
                 return ;
             }
             if (i == location->index.size() - 1)
-                ServeError("404", " Not Found\r\n");
+                ServeError("4048", " Not Found\r\n");
         }
     }
-    if (!In->fail())
+    if (In->eof())
     {
-        std::cout << "fail :" << In->fail() << "\n";
-        In->read(buffer, BUFFER_SIZE - 1);
-        write(fd, buffer, (size_t)In->gcount());
-        std::cout << std::flush;
-        if (In->eof())
-            throw std::runtime_error("hello");
+        write(fd, "0\r\n\r\n", 5);
+        throw std::runtime_error("hello");
     }
-    else
-        throw std::runtime_error("error in the input file G2ET\n");
+    In->read(buffer, BUFFER_SIZE - 1);
+    n << std::hex << std::uppercase << In->gcount();
+    n >> response;
+    response.append("\r\n");
+    std::cout << response ;
+    response.insert(response.end(), buffer, buffer + In->gcount());
+    response.push_back('\r');
+    response.push_back('\n');
+    write(fd, response.c_str(), response.size());
+    std::cout << std::flush;
     std::cout << "out GET\n";
-        
 }
 
 void    Client::DeleteMethod()
@@ -279,16 +283,16 @@ void    Client::ParseKeyValue(std::string line)
 {
     std::string second;
 
+    std::cout << "in\n";
     std::cout << line << "nb:" << std::count(line.begin(), line.end(), ':') << std::endl;
-    if (std::count(line.begin(), line.end(), ':') != 1)
-        ServeError("404", " Bad Request\r\n");
+    if (std::count(line.begin(), line.end(), ':') == 0)
+        ServeError("400", " Bad Request\r\n");
+    second = line.substr(line.find(":") + 1);
+    line = line.substr(0, line.find(":"));
     std::stringstream a(line);
-    std::getline(a, line, ':');
-    std::getline(a, second, ':');
-    if (line.find_first_not_of(" \r\n\t") == std::string::npos || second.find_first_not_of(" \r\n\t") == std::string::npos)
-        ServeError("404", " Bad Request\r\n");
-    line = line.substr(line.find_first_not_of("\n\r\t "), line.find_last_not_of("\n\r\t ") - line.find_first_not_of("\n\r\t ") + 1);
-    second = second.substr(second.find_first_not_of("\n\r\t "), second.find_last_not_of("\n\r\t ") - second.find_first_not_of("\n\r\t ") + 1);
+    std::stringstream b(second);
+    a >> line;
+    b >> second;
     header[line] = second;
     request.erase(request.begin(), request.begin() + request.find("\r\n") + 2);
 }
@@ -321,6 +325,7 @@ void Client::ReadMore()
 
 void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
 {
+
     std::string nBytes;
     std::string response;
     if (FD_ISSET(fd, Rd) || FD_ISSET(fd, Wr))

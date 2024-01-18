@@ -257,6 +257,5 @@ void Server::run(WebServer & web)
         client.erase(client.begin() + i);
         std::cerr << "\33[1;31m" << e.what() << "\33[0m\n";
     }
-    // usleep(1000000);
 
 }
