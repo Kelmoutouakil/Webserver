@@ -32,6 +32,7 @@ class Client
         ~Client();
         Client(const Client &obj);
         void    handleRequest(fd_set *, fd_set *);
+        void    ParseKeyValue(std::string);
         void    ParseHeader(std::string &);
         void    ParseFirstLine(std::string );
         void    SendHeader(std::string); 

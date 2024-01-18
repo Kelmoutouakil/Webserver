@@ -134,6 +134,7 @@ void  Client::PostMethod(Client obj)
     {   
         *Out<< body;;
         body.clear();
+        check = -1;
         throw std::runtime_error("");
     }
 }
@@ -210,18 +211,19 @@ void Client::PostMethodfunc()
         {
             OpeningFile();
            std::map<std::string,std::string>::iterator it = header.find("Content-Length");
+           std::cout <<"****>"<< header["Content-Length"]<< "<*******\n";
             if(it != header.end())
             {
-                content_length = std::stoi(header["Content-Length"]);
-                if( body.length() >= (size_t)content_length)
-                    PostMethod(*this);
-                else if(check == -1)
+                if(check == -1)
                 {
                     std::cout<< "check";
                     count  = body.length();
                     check = 0;
                 }
-                else if  (total == read(fd,Store,BUFFER_SIZE) > 0 )
+                content_length = std::stoi(header["Content-Length"]);
+                if( body.length() >= (size_t)content_length)
+                    PostMethod(*this);
+                else if (total == read(fd,Store,BUFFER_SIZE) > 0 )
                 {
                     count += total;
                     Store[total] = '\0';
@@ -273,7 +275,7 @@ void    Client::GetMethod()
                 return ;
             }
             if (i == location->index.size() - 1)
-                ServeError("405", " Not Found\r\n");
+                ServeError("404", " Not Found\r\n");
         }
     }
     if (!In->fail())
@@ -295,6 +297,25 @@ void    Client::DeleteMethod()
 {
 }
 
+void    Client::ParseKeyValue(std::string line)
+{
+    std::string second;
+
+    std::cout << line << "nb:" << std::count(line.begin(), line.end(), ':') << std::endl;
+    if (std::count(line.begin(), line.end(), ':') != 1)
+        ServeError("404", " Bad Request\r\n");
+    std::stringstream a(line);
+    std::getline(a, line, ':');
+    std::getline(a, second, ':');
+    if (line.find_first_not_of(" \r\n\t") == std::string::npos || second.find_first_not_of(" \r\n\t") == std::string::npos)
+        ServeError("404", " Bad Request\r\n");
+    line = line.substr(line.find_first_not_of("\n\r\t "), line.find_last_not_of("\n\r\t ") - line.find_first_not_of("\n\r\t ") + 1);
+    second = second.substr(second.find_first_not_of("\n\r\t "), second.find_last_not_of("\n\r\t ") - second.find_first_not_of("\n\r\t ") + 1);
+    header[line] = second;
+    request.erase(request.begin(), request.begin() + request.find("\r\n") + 2);
+}
+
+
 void Client::ReadMore()
 {
     std::string line;
@@ -310,18 +331,12 @@ void Client::ReadMore()
         ParseFirstLine(request.substr(0, request.find("\r\n")));
         if (request == "\r\n")
             return ;
-        while(request.find("\r\n\r\n") != std::string::npos)
-        {
-            line = request.substr(0, request.find("\r\n"));
-            if (!(line.find(":") != std::string::npos && (line.length() - std::count(line.begin(), line.end(), ' ') >= 3)))
-                ServeError("400", " Bad Request\r\n");
-            header[line.substr(0, line.find(":"))] = line.substr(line.find(":") + 1);
-            request.erase(request.begin(), request.begin() + request.find("\r\n") + 2);
-        }
+        while(request.find("\r\n\r\n") != request.find("\r\n"))
+            ParseKeyValue(request.substr(0, request.find("\r\n")));
         if (request.length() > 2)
             body = request.substr(2, request.length());
-        // for (std::map<std::string, std::string >::iterator i = header.begin(); i != header.end(); i++)
-        //     std::cout << ">" << i->first << ":" << i->second << "<" << std::endl;
+        // for (std::map<std::string , std::string>::iterator i = header.begin(); i != header.end(); i++)
+        //     std::cout << "key:" << i->first << ";value" << i->second << "|\n";
     }
 
 }
@@ -332,10 +347,14 @@ void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
     std::string response;
     if (FD_ISSET(fd, Rd) || FD_ISSET(fd, Wr))
     {
+        std::cout << "hello fd:" <<  fd << std::endl;
         if (readMore)
             ReadMore();
         else if (M_U_V[0] == "GET")
+        {
+            std::cout << "\33[1;32mhello\n\33[0m";
             GetMethod();
+        }
         else if(M_U_V[0] == "POST")
             PostMethodfunc();
         else if (M_U_V[0] == "DELETE")
