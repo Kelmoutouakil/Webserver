@@ -319,10 +319,11 @@ void Client::ReadMore()
         ParseFirstLine(request.substr(0, request.find("\r\n")));
         if (request == "\r\n")
             return ;
-        while(request.find("\r\n\r\n") != request.find("\r\n"))
+        while(request.find("\r\n\r\n") != std::string::npos)
             ParseKeyValue(request.substr(0, request.find("\r\n")));
         if (request.length() > 2)
             body = request.substr(2, request.length());
+        Header(header);
     }
 
 }
