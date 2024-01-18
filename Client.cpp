@@ -38,6 +38,14 @@ Client::~Client()
     std::cout << "client destructor called \n";
 }
 
+void header(std::map<std::string, std::string> header)
+{
+    std::cout << "\n\33[1;32m";
+    for (std::map<std::string , std::string>::iterator i = header.begin(); i != header.end(); i++)
+        std::cout << "key:" << i->first << "|value:" << i->second << "|\n";
+    std::cout << "\33 [0m\n";
+}
+
 void    Client::ServeError(const std::string &Error, const std::string &reason)
 {
     std::string response (M_U_V[2]);
@@ -80,7 +88,6 @@ void   Client::ParseFirstLine(std::string line)
     }
     else
         ServeError("404", " Not found\r\n");
-    std::cout << "\33[1;31m hi under serveError\n\33[0m"; 
     request.erase(request.begin(), request.begin() + request.find("\r\n") + 2);
 }
 
@@ -104,7 +111,6 @@ void    Client::SendHeader(std::string extension)
         }
     }
     header = M_U_V[2] + " 200 OK\r\nContent-Type: " + conType + "\r\nTransfer-Encoding: Chunked\r\n\r\n";
-    std::cout << ">" << header << "<" <<  std::endl;
     write(fd, header.c_str(), header.length());
     std::cout << std::flush;
 }
@@ -317,8 +323,7 @@ void Client::ReadMore()
             ParseKeyValue(request.substr(0, request.find("\r\n")));
         if (request.length() > 2)
             body = request.substr(2, request.length());
-        // for (std::map<std::string , std::string>::iterator i = header.begin(); i != header.end(); i++)
-        //     std::cout << "key:" << i->first << ";value" << i->second << "|\n";
+        print
     }
 
 }
