@@ -7,6 +7,7 @@ Client::Client(int Fd,Server *serv) : Serv(serv) ,fd(Fd)
 {
     readMore = 1;
     location = NULL;
+    check = -1;
     In = new InFile();
     Out = new std::ofstream();
 }
@@ -109,24 +110,31 @@ void    Client::SendHeader(std::string extension)
     std::cout << std::flush;
 }
 
-bool fileExists(const std::string& filePath) 
+bool fileExists(const std::string filePath) 
 {
-    struct stat buffer;
-    return (stat(filePath.c_str(), &buffer) == 0);
+    std::ifstream file(filePath);
+    if (file.is_open())
+    {
+        file.close();
+        return true;
+    }
+    return false;
 }
 
 void  Client::PostMethod(Client obj)
 {
    (void)obj;
-     if(body.length() >= BUFFER_SIZE)
+    if(body.length() >= BUFFER_SIZE)
     {
+        std::cout << "body : " << body << "\n"; 
         *Out << body.substr(0,BUFFER_SIZE);
         body.erase(0,BUFFER_SIZE);
     }
     else
-    {    
-        *Out<< body;
+    {   
+        *Out<< body;;
         body.clear();
+        throw std::runtime_error("");
     }
 }
 
@@ -147,7 +155,7 @@ void Client::ChunckedMethod(Client obj)
             i+= 2;
             chunkSize = std::stoi(line, nullptr, 16);
             if (chunkSize == 0)
-            break;
+                break;
             *Out<< body.substr(i ,chunkSize);;
             body.erase(0, i  + 2+ chunkSize);
             len -= i + 2 + chunkSize;
@@ -162,32 +170,31 @@ void Client::ChunckedMethod(Client obj)
 std::string findExtension(std::string t)
 {
     std::map<std::string,std::vector<std::string> >::iterator it = Server::mimeTypes.find(t);
-   
-
     if(it != Server::mimeTypes.end())
         return (*(it->second.begin()));
     return "";
 }
 void Client::OpeningFile()
 {
-    std::string t;
+   // std::string t;
 
     std::string filename;
-    if(header.find("Content-Type") != header.end())
-        {
-            t = findExtension(header["Content-Type"]);
-        }
+    std::cout << "   header : >" << header["Content-Type"]<<"<\n";
+   // if(header.find("Content-Type") != header.end())
+        // t = findExtension(header["Content-Type"]);
+        //t = findExtension("text.html");
+
     filename = *(location->uploads.begin() + 1);
-  
-    if(fileExists(filename))
-    {
-        if(filename[filename.length() - 1] != '/')
-            filename +=("/file" + t);
-        else
-            filename+=("file" + t);
-    }
-    else
-        ServeError("403"," Forbidden\r\n");
+    // if(fileExists(filename))
+    // {
+    //     if(filename[filename.length() - 1] != '/')
+            filename +=("/file.html");
+    //     else
+    //         filename+=("file" + t);
+    // }
+    // else
+       // ServeError("403"," Forbidden\r\n");
+  //  std::cout<< ">>" << t << "<<<\n";
     Out->open(filename, std::ios::out | std::ios::app);
     if(!Out->is_open())
         throw std::runtime_error("Couldn't open file ");
@@ -206,15 +213,28 @@ void Client::PostMethodfunc()
             if(it != header.end())
             {
                 content_length = std::stoi(header["Content-Length"]);
-                if(total == read(fd,Store,BUFFER_SIZE) > 0 )
+                if( body.length() >= (size_t)content_length)
+                    PostMethod(*this);
+                else if(check == -1)
+                {
+                    std::cout<< "check";
+                    count  = body.length();
+                    check = 0;
+                }
+                else if  (total == read(fd,Store,BUFFER_SIZE) > 0 )
                 {
                     count += total;
                     Store[total] = '\0';
+                    std::cout<< Store << "\n";
                     body.append(Store);
                     if(count >= content_length)
-                        fd = -1;
-                    PostMethod(*this);    
+                    {
+                        PostMethod(*this);    
+                        throw std::runtime_error("");
+                    }
+                    PostMethod(*this);
                 }
+    
             }
             else if(header.find("Transfert_Encoding") != header.end())
             {
@@ -287,22 +307,21 @@ void Client::ReadMore()
     if (request.find("\r\n\r\n") != std::string::npos)
     {
         readMore = 0;
-        std::cout << "->" <<  request << "<" << std::endl;
         ParseFirstLine(request.substr(0, request.find("\r\n")));
         if (request == "\r\n")
             return ;
-        std::cout << "->" <<  request << "<" << std::endl;
         while(request.find("\r\n\r\n") != std::string::npos)
         {
             line = request.substr(0, request.find("\r\n"));
             if (!(line.find(":") != std::string::npos && (line.length() - std::count(line.begin(), line.end(), ' ') >= 3)))
                 ServeError("400", " Bad Request\r\n");
             header[line.substr(0, line.find(":"))] = line.substr(line.find(":") + 1);
-            request.erase(request.begin() + 2, request.begin() + request.find("\r\n") + 2);
+            request.erase(request.begin(), request.begin() + request.find("\r\n") + 2);
         }
         if (request.length() > 2)
             body = request.substr(2, request.length());
-        std::map< std::string,std::string> ::iterator it = header.begin();
+        // for (std::map<std::string, std::string >::iterator i = header.begin(); i != header.end(); i++)
+        //     std::cout << ">" << i->first << ":" << i->second << "<" << std::endl;
     }
 
 }
@@ -313,14 +332,10 @@ void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
     std::string response;
     if (FD_ISSET(fd, Rd) || FD_ISSET(fd, Wr))
     {
-        std::cout << "hello fd:" <<  fd << std::endl;
         if (readMore)
             ReadMore();
         else if (M_U_V[0] == "GET")
-        {
-            std::cout << "\33[1;32mhello\n\33[0m";
             GetMethod();
-        }
         else if(M_U_V[0] == "POST")
             PostMethodfunc();
         else if (M_U_V[0] == "DELETE")

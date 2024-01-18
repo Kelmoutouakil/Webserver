@@ -235,7 +235,6 @@ void Server::run(WebServer & web)
         FD_SET(fd, &web.FdRd);
         for (i = 0; i < client.size(); i++)
         {
-            std::cout << "set fd of clients\n";
             (client[i].fd > maxFd) && (maxFd = client[i].fd); 
             FD_SET(client[i].fd, &web.FdRd);
             FD_SET(client[i].fd, &web.FdWr);
@@ -250,7 +249,6 @@ void Server::run(WebServer & web)
     }
     catch(std::exception& e)
     {
-        std::cout << "i :" <<  i << std::endl;
         client[i].In->close();
         client[i].Out->close();
         close(client[i].fd);
@@ -259,7 +257,6 @@ void Server::run(WebServer & web)
         client.erase(client.begin() + i);
         std::cerr << "\33[1;31m" << e.what() << "\33[0m\n";
     }
-    std::cout << "out\n";
     // usleep(1000000);
 
 }
