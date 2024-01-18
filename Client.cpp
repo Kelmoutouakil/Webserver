@@ -38,12 +38,12 @@ Client::~Client()
     std::cout << "client destructor called \n";
 }
 
-void header(std::map<std::string, std::string> header)
+void Header(std::map<std::string, std::string> header)
 {
     std::cout << "\n\33[1;32m";
     for (std::map<std::string , std::string>::iterator i = header.begin(); i != header.end(); i++)
         std::cout << "key:" << i->first << "|value:" << i->second << "|\n";
-    std::cout << "\33 [0m\n";
+    std::cout << "\33[0m\n";
 }
 
 void    Client::ServeError(const std::string &Error, const std::string &reason)
@@ -323,7 +323,6 @@ void Client::ReadMore()
             ParseKeyValue(request.substr(0, request.find("\r\n")));
         if (request.length() > 2)
             body = request.substr(2, request.length());
-        print
     }
 
 }
