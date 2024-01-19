@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 18:58:37 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/19 19:07:54 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/19 19:47:24 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,12 +32,6 @@ void  Client::PostMethod()
     
     Out->write(body.c_str(),body.size());
     body.clear();
-    write(fd,M_U_V[2].c_str(),M_U_V[2].length());
-    write(fd," 200 OK\r\n",9);
-    write(fd,"Content-Type: ",14);
-    write(fd,header["Content-Type"].c_str(),header["Content-Type"].length());
-    write(fd,"\r\n\r\nstatus: success\n message: File successfully uploaded\r\n",58);
-    throw std::runtime_error("");
 }
 
 void Client::ChunckedMethod()
@@ -116,11 +110,17 @@ void Client::PostMethodfunc()
                 count  = body.size();
                 check = 0;
             }
-            write(1,body.c_str(),body.size());
-            exit(0);
             content_length = std::stoi(header["Content-Length"]);
             if( body.size() >= (size_t)content_length)
-                PostMethod();
+                {
+                    PostMethod();
+                    write(fd,M_U_V[2].c_str(),M_U_V[2].length());
+                    write(fd," 200 OK\r\n",9);
+                    write(fd,"Content-Type: ",14);
+                    write(fd,header["Content-Type"].c_str(),header["Content-Type"].length());
+                    write(fd,"\r\n\r\nstatus: success\n message: File successfully uploaded\r\n",58);
+                    throw std::runtime_error("");
+                }
             total = read(fd,Store,BUFFER_SIZE - 1);
             if (total > 0 )
             {
@@ -129,7 +129,14 @@ void Client::PostMethodfunc()
                 body.insert(body.end(),Store, Store + total);
                 PostMethod();
                 if(count >= content_length)
-                    PostMethod();
+                {
+                    write(fd,M_U_V[2].c_str(),M_U_V[2].length());
+                    write(fd," 200 OK\r\n",9);
+                    write(fd,"Content-Type: ",14);
+                    write(fd,header["Content-Type"].c_str(),header["Content-Type"].length());
+                    write(fd,"\r\n\r\nstatus: success\n message: File successfully uploaded\r\n",58);
+                    throw std::runtime_error("");
+                }
             }
         }
         else if(header.find("Transfert_Encoding") != header.end())
