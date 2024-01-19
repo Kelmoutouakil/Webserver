@@ -260,7 +260,7 @@ void    Client::GetMethod()
                 return ;
             }
             if (i == location->index.size() - 1)
-                ServeError("4048", " Not Found\r\n");
+                ServeError("404", " Not Found\r\n");
         }
     }
     if (In->eof())
@@ -289,8 +289,6 @@ void    Client::ParseKeyValue(std::string line)
 {
     std::string second;
 
-    std::cout << "in\n";
-    std::cout << line << "nb:" << std::count(line.begin(), line.end(), ':') << std::endl;
     if (std::count(line.begin(), line.end(), ':') == 0)
         ServeError("400", " Bad Request\r\n");
     second = line.substr(line.find(":") + 1);
@@ -323,9 +321,8 @@ void Client::ReadMore()
             ParseKeyValue(request.substr(0, request.find("\r\n")));
         if (request.length() > 2)
             body = request.substr(2, request.length());
-        Header(header);
+        //Header(header);
     }
-
 }
 
 void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
