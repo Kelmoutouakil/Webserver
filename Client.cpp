@@ -7,6 +7,7 @@ Client::Client(int Fd,Server *serv) : Serv(serv) ,fd(Fd)
 {
     readMore = 1;
     location = NULL;
+    check = -1;
     In = new InFile();
     Out = new std::ofstream();
 }
@@ -28,6 +29,7 @@ Client& Client::operator=(const Client &obj)
     Out =  obj.Out;
     In =  obj.In;
     fd = obj.fd;
+    check = obj.check;
     Serv = obj.Serv;
 
     return *this;
@@ -115,25 +117,22 @@ void    Client::SendHeader(std::string extension)
     std::cout << std::flush;
 }
 
-bool fileExists(const std::string& filePath) 
+bool fileExists(const std::string filePath) 
 {
-    struct stat buffer;
-    return (stat(filePath.c_str(), &buffer) == 0);
+    std::ifstream file(filePath);
+    if (file.is_open())
+    {
+        file.close();
+        return true;
+    }
+    return false;
 }
 
 void  Client::PostMethod(Client obj)
 {
-   (void)obj;
-     if(body.length() >= BUFFER_SIZE)
-    {
-        *Out << body.substr(0,BUFFER_SIZE);
-        body.erase(0,BUFFER_SIZE);
-    }
-    else
-    {    
-        *Out<< body;
+        (void)obj;
+        *Out<< body;;
         body.clear();
-    }
 }
 
 void Client::ChunckedMethod(Client obj)
@@ -153,7 +152,7 @@ void Client::ChunckedMethod(Client obj)
             i+= 2;
             chunkSize = std::stoi(line, nullptr, 16);
             if (chunkSize == 0)
-            break;
+                break;
             *Out<< body.substr(i ,chunkSize);;
             body.erase(0, i  + 2+ chunkSize);
             len -= i + 2 + chunkSize;
@@ -168,8 +167,6 @@ void Client::ChunckedMethod(Client obj)
 std::string findExtension(std::string t)
 {
     std::map<std::string,std::vector<std::string> >::iterator it = Server::mimeTypes.find(t);
-   
-
     if(it != Server::mimeTypes.end())
         return (*(it->second.begin()));
     return "";
@@ -177,23 +174,20 @@ std::string findExtension(std::string t)
 void Client::OpeningFile()
 {
     std::string t;
-
     std::string filename;
-    if(header.find("Content-Type") != header.end())
-        {
-            t = findExtension(header["Content-Type"]);
-        }
+    t = findExtension(header["Content-Type"]);
+    std::srand(time(NULL));
+    std::string name  = std::to_string(std::rand() % 100 + 1) + "." + t;
     filename = *(location->uploads.begin() + 1);
-  
     if(fileExists(filename))
     {
         if(filename[filename.length() - 1] != '/')
-            filename +=("/file" + t);
+            filename +=("/" + name );
         else
-            filename+=("file" + t);
+            filename+= name;
     }
     else
-        ServeError("403"," Forbidden\r\n");
+       ServeError("403"," Forbidden\r\n");
     Out->open(filename, std::ios::out | std::ios::app);
     if(!Out->is_open())
         throw std::runtime_error("Couldn't open file ");
@@ -203,48 +197,67 @@ void Client::PostMethodfunc()
     char Store[BUFFER_SIZE];
     int total  = 0;
     int content_length;
-    if(location)
-    {
-        if(location->uploads.size() >= 2 && *(location->uploads.begin()) == "on")
+    if(location->uploads.size() >= 2 && *(location->uploads.begin()) == "on")
+    { 
+        std::map<std::string,std::string>::iterator it = header.find("Content-Length");
+        if(it != header.end())
         {
-            OpeningFile();
-           std::map<std::string,std::string>::iterator it = header.find("Content-Length");
-            if(it != header.end())
+            if(check == -1)
             {
-                content_length = std::stoi(header["Content-Length"]);
-                if(total == read(fd,Store,BUFFER_SIZE) > 0 )
-                {
-                    count += total;
-                    Store[total] = '\0';
-                    body.append(Store);
-                    if(count >= content_length)
-                        fd = -1;
-                    PostMethod(*this);    
-                }
+                OpeningFile();
+                count  = body.length();
+                check = 0;
+                std::cout << count << "< count\n";
             }
-            else if(header.find("Transfert_Encoding") != header.end())
+            content_length = std::stoi(header["Content-Length"]);
+            if( body.length() >= (size_t)content_length)
             {
-                if(header["Transfert_Encoding"] == "chunked")
+                PostMethod(*this);
+                write(fd,M_U_V[2].c_str(),M_U_V[2].length());
+                write(fd," 200 OK\r\n",9);
+                write(fd,"Content-Type: ",14);
+                write(fd,header["Content-Type"].c_str(),header["Content-Type"].length());
+                write(fd,"\r\nstatus: success\r\nmessage: File successfully uploaded\r\n\n",64);
+                throw std::runtime_error("");
+            } 
+            total = read(fd,Store,BUFFER_SIZE - 1);
+            std::cout << count << "< total\n";
+            if  (total > 0 )
+            {
+                count += total;
+                Store[total] = '\0';
+                body.append(Store);
+                PostMethod(*this);
+                if(count >= content_length)
                 {
-                    if(total == read(fd,Store,BUFFER_SIZE) > 0 )
-                    {
-                        Store[total] = '\0';
-                        body.append(Store);
-                        ChunckedMethod(*this);
-                    }
+                    write(fd,M_U_V[2].c_str(),M_U_V[2].length());
+                    write(fd," 200 OK\r\n",9);
+                    write(fd,"Content-Type: ",14);
+                    write(fd,header["Content-Type"].c_str(),header["Content-Type"].length());
+                    write(fd,"\r\nstatus: success\r\nmessage: File successfully uploaded\r\n\n",64);
+                    throw std::runtime_error("");
                 }
             }
         }
-        else
-            ServeError("403", " Forbidden\r\n");
+        else if(header.find("Transfert_Encoding") != header.end())
+        {
+            if(header["Transfert_Encoding"] == "chunked")
+            {
+                if(total == read(fd,Store,BUFFER_SIZE) > 0 )
+                {
+                    Store[total] = '\0';
+                    body.append(Store);
+                    ChunckedMethod(*this);
+                }
+            }
+        }
     }
     else
-        ServeError("404", " Not Found\r\n");
+        ServeError("403", " Forbidden\r\n");
 }
 
 void    Client::GetMethod()
 {
-    std::stringstream n;
     if (!In->is_open())
     {
         for(size_t i = 0;i < location->index.size(); i++)
@@ -263,22 +276,19 @@ void    Client::GetMethod()
                 ServeError("404", " Not Found\r\n");
         }
     }
-    if (In->eof())
+    if (!In->fail())
     {
-        write(fd, "0\r\n\r\n", 5);
-        throw std::runtime_error("hello");
+        std::cout << "fail :" << In->fail() << "\n";
+        In->read(buffer, BUFFER_SIZE - 1);
+        write(fd, buffer, (size_t)In->gcount());
+        std::cout << std::flush;
+        if (In->eof())
+            throw std::runtime_error("hello");
     }
-    In->read(buffer, BUFFER_SIZE - 1);
-    n << std::hex << std::uppercase << In->gcount();
-    n >> response;
-    response.append("\r\n");
-    std::cout << response ;
-    response.insert(response.end(), buffer, buffer + In->gcount());
-    response.push_back('\r');
-    response.push_back('\n');
-    write(fd, response.c_str(), response.size());
-    std::cout << std::flush;
+    else
+        throw std::runtime_error("error in the input file G2ET\n");
     std::cout << "out GET\n";
+        
 }
 
 void    Client::DeleteMethod()
@@ -294,9 +304,12 @@ void    Client::ParseKeyValue(std::string line)
     second = line.substr(line.find(":") + 1);
     line = line.substr(0, line.find(":"));
     std::stringstream a(line);
-    std::stringstream b(second);
-    a >> line;
-    b >> second;
+    std::getline(a, line, ':');
+    std::getline(a, second, ':');
+    if (line.find_first_not_of(" \r\n\t") == std::string::npos || second.find_first_not_of(" \r\n\t") == std::string::npos)
+        ServeError("404", " Bad Request\r\n");
+    line = line.substr(line.find_first_not_of("\n\r\t "), line.find_last_not_of("\n\r\t ") - line.find_first_not_of("\n\r\t ") + 1);
+    second = second.substr(second.find_first_not_of("\n\r\t "), second.find_last_not_of("\n\r\t ") - second.find_first_not_of("\n\r\t ") + 1);
     header[line] = second;
     request.erase(request.begin(), request.begin() + request.find("\r\n") + 2);
 }
@@ -327,7 +340,6 @@ void Client::ReadMore()
 
 void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
 {
-
     std::string nBytes;
     std::string response;
     if (FD_ISSET(fd, Rd) || FD_ISSET(fd, Wr))

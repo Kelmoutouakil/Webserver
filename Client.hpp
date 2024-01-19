@@ -24,6 +24,7 @@ class Client
         Location *location;
     public:
         int count;
+        int check;
         std::ofstream *Out;
         InFile *In;
         int fd;
@@ -46,4 +47,4 @@ class Client
         void    OpeningFile();
 };
 
-bool fileExists(const std::string& filePath) ;
+bool fileExists(const std::string filePath) ;
