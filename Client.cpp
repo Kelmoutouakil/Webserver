@@ -81,7 +81,7 @@ bool fileExists(const std::string filePath)
 void  Client::PostMethod(Client obj)
 {
         (void)obj;
-        *Out<< body;;
+        Out->write(body.c_str(),body.size());
         body.clear();
 }
 
@@ -155,11 +155,11 @@ void Client::PostMethodfunc()
             if(check == -1)
             {
                 OpeningFile(); 
-                count  = body.length();
+                count  = body.size();
                 check = 0;
             }
             content_length = std::stoi(header["Content-Length"]);
-            if( body.length() >= (size_t)content_length)
+            if( body.size() >= (size_t)content_length)
             {
                 PostMethod(*this);
                 write(fd,M_U_V[2].c_str(),M_U_V[2].length());
@@ -170,16 +170,11 @@ void Client::PostMethodfunc()
                 throw std::runtime_error("");
             } 
             total = read(fd,Store,BUFFER_SIZE - 1);
-            std::cout<< "total : "<< total << "\n";
             if  (total > 0 )
             {
                 count += total;
-                 Store[total] = '\0';
-                // std::cout<< "sssssssssss----->   "<< Store <<"   <--****************\n";
-                // std::cout<<"*********---->  "<< body << "  *****************\n";
-                body.append(Store);
-               // std::cout<<"*********- afteerrr --->  "<< body << "  *****************\n";
-               
+                Store[total] = '\0';
+                body.insert(body.end(),Store, Store + total);
                 PostMethod(*this);
                 if(count >= content_length)
                 {

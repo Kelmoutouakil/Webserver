@@ -2,7 +2,7 @@
 #include "WebServer.hpp"
 #include "InFile.hpp"
 #include "Server.hpp"
-
+#include <fcntl.h>
 void   Client::ParseFirstLine(std::string line)
 {
     std::stringstream first(line);
@@ -125,8 +125,8 @@ void Client::ReadMore()
             return ;
         while(request.find("\r\n\r\n") != std::string::npos)
             ParseKeyValue(request.substr(0, request.find("\r\n")));
-        if (request.length() > 2)
-            body = request.substr(2, request.length());
+        if (request.size() > 2)
+            body.insert(body.end(),request.begin() + 2,request.end());
         if (header.find("Host") == header.end())
             ServeError("400", " Bad Request\r\n");
         Header(header);
