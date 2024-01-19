@@ -18,6 +18,7 @@
 #include <string>
 #include <functional>
 #include "Server.hpp"
+#include <dirent.h>
 
 #define BUFFER_SIZE 501
 

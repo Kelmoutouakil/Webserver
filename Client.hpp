@@ -6,12 +6,15 @@
 //#include "WebServer.hpp"
 #include "InFile.hpp"
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
 #include <map>
 class Location;
 class Server;
 
 class Client
 {
+        DIR *iN;
         bool readMore;
         std::string request;
         std::string response;
