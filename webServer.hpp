@@ -32,4 +32,4 @@ class WebServer
         WebServer(int, char **);
 };
 
-void reque(std::vector<std::string > &request);
+void Header(std::map<std::string, std::string> header);
