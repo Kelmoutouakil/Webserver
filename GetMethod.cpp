@@ -58,6 +58,17 @@ void    Client::SendHeader(std::string extension)
 
 void    Client::GetMethod()
 {
+    static int i;
+
+    if (!i)
+    {
+        std::cout << "hello ----->\n";
+        write(fd, "HTTP/1.1 307 Temporary Redirect\r\nLocation: http://localhost:2020/\r\nContent-Type: text/html\r\nContent-Length: 0", 109);
+        readMore = 1;
+        usleep(1000000);
+        return ;
+        //throw std::runtime_error("redirect");
+    }
     if (!In->is_open())
     {
         for(size_t i = 0;i < location->index.size(); i++)
@@ -72,7 +83,7 @@ void    Client::GetMethod()
                 SendHeader((location->root + location->index[i]).substr((location->root + location->index[i]).rfind(".") + 1));
                 return ;
             }
-            if (i == location->index.size() - 1)
+            if ((i == location->index.size() - 1) && (iN = opendir(location->root.c_str())) == NULL)
                 ServeError("404", " Not Found\r\n");
         }
     }
@@ -116,7 +127,7 @@ void Client::ReadMore()
     if (!r)
         ServeError("400", " Bad Request\r\n");
     buffer[r] = 0;
-    request += buffer;
+    request.insert(request.end(), buffer , buffer + r);
     if (request.find("\r\n\r\n") != std::string::npos)
     {
         readMore = 0;
@@ -126,7 +137,7 @@ void Client::ReadMore()
         while(request.find("\r\n\r\n") != std::string::npos)
             ParseKeyValue(request.substr(0, request.find("\r\n")));
         if (request.size() > 2)
-            body.insert(body.end(),request.begin() + 2,request.end());
+            body.insert(body.begin(), request.begin(), request.end());
         if (header.find("Host") == header.end())
             ServeError("400", " Bad Request\r\n");
         Header(header);
