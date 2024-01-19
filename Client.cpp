@@ -81,7 +81,7 @@ bool fileExists(const std::string filePath)
 void  Client::PostMethod(Client obj)
 {
         (void)obj;
-        *Out<< body;;
+        Out->write(body.c_str(),body.size());
         body.clear();
 }
 
@@ -154,29 +154,27 @@ void Client::PostMethodfunc()
         {
             if(check == -1)
             {
-                OpeningFile();
-                count  = body.length();
+                OpeningFile(); 
+                count  = body.size();
                 check = 0;
-                std::cout << count << "< count\n";
             }
             content_length = std::stoi(header["Content-Length"]);
-            if( body.length() >= (size_t)content_length)
+            if( body.size() >= (size_t)content_length)
             {
                 PostMethod(*this);
                 write(fd,M_U_V[2].c_str(),M_U_V[2].length());
                 write(fd," 200 OK\r\n",9);
                 write(fd,"Content-Type: ",14);
                 write(fd,header["Content-Type"].c_str(),header["Content-Type"].length());
-                write(fd,"\r\nstatus: success\r\nmessage: File successfully uploaded\r\n\n",64);
+                write(fd,"\r\n\r\nstatus: success\n message: File successfully uploaded\r\n",58);
                 throw std::runtime_error("");
             } 
             total = read(fd,Store,BUFFER_SIZE - 1);
-            std::cout << count << "< total\n";
             if  (total > 0 )
             {
                 count += total;
                 Store[total] = '\0';
-                body.append(Store);
+                body.insert(body.end(),Store, Store + total);
                 PostMethod(*this);
                 if(count >= content_length)
                 {
@@ -184,7 +182,7 @@ void Client::PostMethodfunc()
                     write(fd," 200 OK\r\n",9);
                     write(fd,"Content-Type: ",14);
                     write(fd,header["Content-Type"].c_str(),header["Content-Type"].length());
-                    write(fd,"\r\nstatus: success\r\nmessage: File successfully uploaded\r\n\n",64);
+                    write(fd,"\r\n\r\nstatus: success\n message: File successfully uploaded\r\n",58);
                     throw std::runtime_error("");
                 }
             }

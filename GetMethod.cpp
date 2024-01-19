@@ -2,7 +2,7 @@
 #include "WebServer.hpp"
 #include "InFile.hpp"
 #include "Server.hpp"
-
+#include <fcntl.h>
 void   Client::ParseFirstLine(std::string line)
 {
     std::stringstream first(line);
