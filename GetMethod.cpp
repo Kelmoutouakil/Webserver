@@ -137,7 +137,7 @@ void Client::ReadMore()
         while(request.find("\r\n\r\n") != std::string::npos)
             ParseKeyValue(request.substr(0, request.find("\r\n")));
         if (request.size() > 2)
-            body.insert(body.begin(), request.begin(), request.end());
+            body.insert(body.begin(), request.begin() + 2, request.end());
         if (header.find("Host") == header.end())
             ServeError("400", " Bad Request\r\n");
         Header(header);
