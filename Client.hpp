@@ -37,8 +37,8 @@ class Client
         void    ParseHeader(std::string &);
         void    ParseFirstLine(std::string );
         void    SendHeader(std::string); 
-        void    PostMethod(Client obj);
-        void    ChunckedMethod(Client obj);
+        void    PostMethod();
+        void    ChunckedMethod();
         void    ReadMore();
         void    PostMethodfunc();
         void    GetMethod();
