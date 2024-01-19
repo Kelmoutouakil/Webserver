@@ -204,10 +204,9 @@ void Client::PostMethodfunc()
         {
             if(check == -1)
             {
-                OpeningFile();
+                OpeningFile(); 
                 count  = body.length();
                 check = 0;
-                std::cout << count << "< count\n";
             }
             content_length = std::stoi(header["Content-Length"]);
             if( body.length() >= (size_t)content_length)
@@ -217,16 +216,19 @@ void Client::PostMethodfunc()
                 write(fd," 200 OK\r\n",9);
                 write(fd,"Content-Type: ",14);
                 write(fd,header["Content-Type"].c_str(),header["Content-Type"].length());
-                write(fd,"\r\nstatus: success\r\nmessage: File successfully uploaded\r\n\n",64);
+                write(fd,"\r\n\r\nstatus: success\n message: File successfully uploaded\r\n",58);
                 throw std::runtime_error("");
             } 
             total = read(fd,Store,BUFFER_SIZE - 1);
-            std::cout << count << "< total\n";
             if  (total > 0 )
             {
                 count += total;
-                Store[total] = '\0';
+                 Store[total] = '\0';
+                // std::cout<< "sssssssssss----->   "<< Store <<"   <--****************\n";
+                // std::cout<<"*********---->  "<< body << "  *****************\n";
                 body.append(Store);
+               // std::cout<<"*********- afteerrr --->  "<< body << "  *****************\n";
+               
                 PostMethod(*this);
                 if(count >= content_length)
                 {
@@ -234,7 +236,7 @@ void Client::PostMethodfunc()
                     write(fd," 200 OK\r\n",9);
                     write(fd,"Content-Type: ",14);
                     write(fd,header["Content-Type"].c_str(),header["Content-Type"].length());
-                    write(fd,"\r\nstatus: success\r\nmessage: File successfully uploaded\r\n\n",64);
+                    write(fd,"\r\n\r\nstatus: success\n message: File successfully uploaded\r\n",58);
                     throw std::runtime_error("");
                 }
             }
@@ -299,9 +301,10 @@ void    Client::ParseKeyValue(std::string line)
 {
     std::string second;
 
-    std::cout << line << "nb:" << std::count(line.begin(), line.end(), ':') << std::endl;
-    if (std::count(line.begin(), line.end(), ':') != 1)
-        ServeError("404", " Bad Request\r\n");
+    if (std::count(line.begin(), line.end(), ':') == 0)
+        ServeError("400", " Bad Request\r\n");
+    second = line.substr(line.find(":") + 1);
+    line = line.substr(0, line.find(":"));
     std::stringstream a(line);
     std::getline(a, line, ':');
     std::getline(a, second, ':');
@@ -333,9 +336,8 @@ void Client::ReadMore()
             ParseKeyValue(request.substr(0, request.find("\r\n")));
         if (request.length() > 2)
             body = request.substr(2, request.length());
-        Header(header);
+        //Header(header);
     }
-
 }
 
 void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
