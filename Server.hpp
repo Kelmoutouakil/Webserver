@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 11:48:52 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/16 11:53:28 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/20 10:33:17 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,3 +65,4 @@ class Server
 
 int findEndofBlock(const std::string& conf, int start);
 std::string affect(std::vector<std::string>::iterator it,std::vector<std::string>::iterator e);
+std::vector<std::string> fillhelper(std::string v);

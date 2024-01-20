@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/01 09:36:08 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/16 11:53:11 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/20 10:40:46 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,17 +119,23 @@ void parseListen(std::string content,Server& o)
     else if(ss.fail() || !validIpAdress(Ipadress) || !validPort(PortString))
         throw std::runtime_error("Error in listen directive");
 }
+
 void defaultErrorPages(std::map<std::string,std::string>& map)
 {
-    map["404"] = "error_pages/404.html";
-    map["405"] = "error_pages/405.html";
-    map["300"] = "error_pages/300.html";
+    map["404"] = "/Users/kelmouto/Desktop/webserver/error_pages/404.html";
+    map["405"] = "/Users/kelmouto/Desktop/webserver/error_pages/405.html";
+    map["300"] = "/Users/kelmouto/Desktop/webserver/error_pages/300.html";
+    map["404"] = "/Users/kelmouto/Desktop/webserver/error_pages/404.html";
+    map["403"] = "/Users/kelmouto/Desktop/webserver/error_pages/403.html";
+    map["408"] = "/Users/kelmouto/Desktop/webserver/error_pages/408.html";
+    map["413"] = "/Users/kelmouto/Desktop/webserver/error_pages/413.html";
+    map["500"] = "/Users/kelmouto/Desktop/webserver/error_pages/500.html";
 }
+
 Server  Config::fillServervect(int start, int end, std::string conf)
 {
     Server o;
     conf = o.parslocation(conf);
- 
     std::stringstream serverBlock (conf.substr(start + 1, end - start - 1));
     std::vector<std::string> serverBlockLines;
     std::string word;

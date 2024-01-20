@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 18:58:37 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/20 09:36:48 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/20 10:17:20 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,26 +42,19 @@ void Client::ChunckedMethod()
     size_t chunkSize;
     size_t len = body.size();
     size_t totalSize = BUFFER_SIZE;
-    try
-    {
-        while(len > 0 &&  totalSize > 0)
-        { 
-            i = body.find("\r\n");
-            line = body.substr(0,i);
-            i+= 2;
-            chunkSize = std::stoi(line, nullptr, 16);
-            if (chunkSize == 0)
-                break;
-            *Out<< body.substr(i ,chunkSize);;
-            body.erase(0, i  + 2+ chunkSize);
-            len -= i + 2 + chunkSize;
-            totalSize -= i + 2 + chunkSize;
-        }
+    while(len > 0 &&  totalSize > 0)
+    { 
+        i = body.find("\r\n");
+        line = body.substr(0,i);
+        i+= 2;
+        chunkSize = std::stoi(line, nullptr, 16);
+        if (chunkSize == 0)
+            break;
+        *Out<< body.substr(i ,chunkSize);;
+        body.erase(0, i  + 2+ chunkSize);
+        len -= i + 2 + chunkSize;
+        totalSize -= i + 2 + chunkSize;
     }
-    catch(const std::exception& e)
-    {
-            std::cerr << e.what() << '\n';
-    }  
 }
 
 std::string findExtension(std::string t)
@@ -141,17 +134,21 @@ void Client::PostMethodfunc()
         }
         else if(header.find("Transfer-Encoding") != header.end())
         {
-             OpeningFile(); 
+            OpeningFile(); 
             if(header["Transfer-Encoding"] == "chunked")
             {
-                std::cout<< body << " ******\n";
-                exit(0);
+                if(body.substr(body.size() -  4,4) == "\r\n\r\n")
+                    {
+                        ChunckedMethod();
+                        throw std::runtime_error("");
+                    }
                 total = read(fd,Store,BUFFER_SIZE - 1);
                 if(total > 0)
                 {
                     Store[total] = '\0';
                     body.insert(body.end(),Store, Store + total);
                     ChunckedMethod();
+                    throw std::runtime_error("");
                 }
             }
         }
