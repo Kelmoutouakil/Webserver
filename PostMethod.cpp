@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 18:58:37 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/20 11:07:07 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/20 11:35:00 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,15 @@ void Client::ChunckedMethod()
         i = body.find("\r\n");
         line = body.substr(0,i);
         i+= 2;
-        chunkSize = std::stoi(line, nullptr, 16);
+        try
+        {
+            chunkSize = std::stoi(line, nullptr, 16);
+        }
+        catch(const std::exception& e)
+        {
+            *Out<< body.substr(i ,chunkSize);
+            continue;
+        }
         if (chunkSize == 0)
             break;
         *Out<< body.substr(i ,chunkSize);;

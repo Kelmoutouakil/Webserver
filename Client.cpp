@@ -57,7 +57,7 @@ void    Client::ServeError(const std::string &Error, const std::string &reason)
     response = response + " " + Error + reason + "content-type: txt/html\r\n"; 
     In->open(Serv->errorPages[Error].c_str());
     if (!In->is_open())
-        throw std::runtime_error("Error in opning error file\n");
+        throw std::runtime_error("Error in opning error file nb:" + Error+ "\n");
     std::string body((std::istreambuf_iterator<char>(*In)), std::istreambuf_iterator<char>());
     int size = In->size();
     std::cout << "size : " << size << std::endl;
