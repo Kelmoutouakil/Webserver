@@ -36,7 +36,7 @@ class Client
         ~Client();
         Client(const Client &obj);
         void    handleRequest(fd_set *, fd_set *);
-        void    ParseKeyValue(std::string);
+        void    ParseKeyValue(std::string&, std::string);
         void    ParseHeader(std::string &);
         void    ParseFirstLine(std::string );
         void    SendHeader(std::string); 
@@ -48,6 +48,7 @@ class Client
         void    DeleteMethod();
         void    ServeError(const std::string &, const std::string &);
         void    OpeningFile();
+        void    ServeDirectory();
 };
 
 bool fileExists(const std::string filePath) ;

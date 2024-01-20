@@ -3,32 +3,8 @@
 #include "InFile.hpp"
 #include "Server.hpp"
 #include <fcntl.h>
-void   Client::ParseFirstLine(std::string line)
-{
-    std::stringstream first(line);
+#include <sys/stat.h>
 
-    for (int i = 0;i < 3 && first >> M_U_V[i];i++)
-        ;
-    if (!M_U_V[0][0] || !M_U_V[1][0]|| !M_U_V[1][0])
-        ServeError("400", " Bad Request\r\n");
-    while (M_U_V[1].length() && Serv->locations.find(M_U_V[1]) == Serv->locations.end())
-        M_U_V[1].pop_back();
-        // std::cout << "location name :" << M_U_V[1] << "<";
-    // for(std::map<std::string , Location>::iterator i = Serv->locations.begin(); i != Serv->locations.end();i++)
-    //     std::cout << "\33[1;32mlocation :" << ">" << i->first << "<" << "\n\33[1;32m";
-    if (Serv->locations.find(M_U_V[1]) != Serv->locations.end())
-    {
-        location = &Serv->locations[M_U_V[1]];
-        if (location->root.back() == '/')
-            location->root.erase(location->root.end() - 1);
-        if (M_U_V[1].back() != '/')
-            M_U_V[1].append("/");
-        location->root.append(M_U_V[1]);
-    }
-    else
-        ServeError("404", " Not found\r\n");
-    request.erase(request.begin(), request.begin() + request.find("\r\n") + 2);
-}
 
 
 
@@ -37,15 +13,12 @@ void    Client::SendHeader(std::string extension)
     std::string header;
     std::string conType("txt/txt\r\n");
 
-    std::cout << "extension :>" << extension << "<" << std::endl;
     for (std::map<std::string, std::vector<std::string> >::iterator i = Serv->mimeTypes.begin(); i != Serv->mimeTypes.end();i++)
     {
-        std::cout << "content-type:" << i->first << "<" << std::endl;
         for (std::vector<std::string>::iterator j = i->second.begin(); j != i->second.end(); j++)
         {
             if (extension == *j)
             {
-                std::cout << "enter \n";
                 conType = i->first;
                 break;
             }
@@ -56,19 +29,13 @@ void    Client::SendHeader(std::string extension)
     std::cout << std::flush;
 }
 
+void    Client::ServeDirectory()
+{
+
+}
+
 void    Client::GetMethod()
 {
-    static int i;
-
-    if (!i)
-    {
-        std::cout << "hello ----->\n";
-        write(fd, "HTTP/1.1 307 Temporary Redirect\r\nLocation: http://localhost:2020/\r\nContent-Type: text/html\r\nContent-Length: 0", 109);
-        readMore = 1;
-        usleep(1000000);
-        return ;
-        //throw std::runtime_error("redirect");
-    }
     if (!In->is_open())
     {
         for(size_t i = 0;i < location->index.size(); i++)
@@ -76,7 +43,6 @@ void    Client::GetMethod()
             std::cout << ">" << location->index[i] << "<" << std::endl;
             if (access((location->root + location->index[i]).c_str(), R_OK) != -1)
             {
-                // std::cout << location->root << location->index[i] << std::endl;
                 In->open((location->root + location->index[i]).c_str());
                 if (!In->is_open())
                     throw std::runtime_error("input file not open ?");
@@ -85,6 +51,8 @@ void    Client::GetMethod()
             }
             if ((i == location->index.size() - 1) && (iN = opendir(location->root.c_str())) == NULL)
                 ServeError("404", " Not Found\r\n");
+            if (iN != NULL)
+                ServeDirectory();
         }
     }
     if (!In->fail())
@@ -102,7 +70,7 @@ void    Client::GetMethod()
         
 }
 
-void    Client::ParseKeyValue(std::string line)
+void    Client::ParseKeyValue(std::string &ln, std::string line)
 {
     std::string second;
 
@@ -115,13 +83,39 @@ void    Client::ParseKeyValue(std::string line)
     a >> line;
     b >> second;
     header[line] = second;
+    ln.erase(ln.begin(), ln.begin() + ln.find("\r\n") + 2);
+}
+
+void   Client::ParseFirstLine(std::string line)
+{
+    std::stringstream first(line);
+    DIR *dir;
+    for (int i = 0;i < 3 && first >> M_U_V[i];i++)
+        ;
+    if (!M_U_V[0][0] || !M_U_V[1][0]|| !M_U_V[1][0])
+        ServeError("400", " Bad Request\r\n");
+    while (M_U_V[1].length() && Serv->locations.find(M_U_V[1]) == Serv->locations.end())
+        M_U_V[1].pop_back();
+    if (Serv->locations.find(M_U_V[1]) != Serv->locations.end())
+    {
+        location = &Serv->locations[M_U_V[1]];
+        if (location->root.back() == '/')
+            location->root.erase(location->root.end() - 1);
+        if (M_U_V[1].back() != '/')
+            M_U_V[1].append("/");
+        location->root.append(M_U_V[1]);
+    }
+    else
+        ServeError("404", " Not found\r\n");
+    std::cout << " >" << location->root << "<" << std::endl;
+    if ((dir = opendir(location->root.c_str())) == NULL)
+        ServeError("404", " Not Found\r\n");
+    closedir(dir);
     request.erase(request.begin(), request.begin() + request.find("\r\n") + 2);
 }
 
-
 void Client::ReadMore()
 {
-    std::string line;
 
     int r = read(fd, buffer, BUFFER_SIZE - 1);
     if (!r) 
@@ -131,13 +125,12 @@ void Client::ReadMore()
     if (request.find("\r\n\r\n") != std::string::npos)
     {
         readMore = 0;
-        ParseFirstLine(request.substr(0, request.find("\r\n")));
-        if (request == "\r\n")
-            return ;
-        while(request.find("\r\n\r\n") != std::string::npos)
-            ParseKeyValue(request.substr(0, request.find("\r\n")));
-        if (request.size() > 2)
-            body.insert(body.begin(), request.begin() + 2, request.end());
+        std::string head(request.substr(0, request.find("\r\n\r\n")));
+        body.insert(body.end(),  request.begin() + request.find("\r\n\r\n") + 4, request.end());
+        ParseFirstLine(head.substr(0, head.find("\r\n")));
+        head.erase(head.begin() , head.begin() + head.find("\r\n") + 2);
+        while(head.find("\r\n") != std::string::npos)
+            ParseKeyValue(head, head.substr(0, head.find("\r\n")));
         if (header.find("Host") == header.end())
             ServeError("400", " Bad Request\r\n");
         Header(header);
