@@ -81,7 +81,7 @@ void    Client::ParseKeyValue(std::string &ln, std::string line)
 void   Client::ParseFirstLine(std::string line)
 {
     std::stringstream first(line);
-    struct stat dir;
+    DIR *dir;
     for (int i = 0;i < 3 && first >> M_U_V[i];i++)
         ;
     if (!M_U_V[0][0] || !M_U_V[1][0]|| !M_U_V[1][0])
@@ -100,10 +100,9 @@ void   Client::ParseFirstLine(std::string line)
     else
         ServeError("404", " Not found\r\n");
     std::cout << " >" << location->root << "<" << std::endl;
-    if (stat(location->root.c_str(), &dir) != 0)
+    if ((dir = opendir(location->root.c_str())) == NULL)
         ServeError("404", " Not Found\r\n");
-    if (!S_ISDIR(dir.st_mode))
-        ServeError("404", " Not found\r\n");
+    closedir(dir);
     request.erase(request.begin(), request.begin() + request.find("\r\n") + 2);
 }
 
