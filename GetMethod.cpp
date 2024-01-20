@@ -28,6 +28,12 @@ void    Client::SendHeader(std::string extension)
     write(fd, header.c_str(), header.length());
     std::cout << std::flush;
 }
+
+void    Client::ServeDirectory()
+{
+
+}
+
 void    Client::GetMethod()
 {
     if (!In->is_open())
@@ -45,6 +51,8 @@ void    Client::GetMethod()
             }
             if ((i == location->index.size() - 1) && (iN = opendir(location->root.c_str())) == NULL)
                 ServeError("404", " Not Found\r\n");
+            if (iN != NULL)
+                ServeDirectory();
         }
     }
     if (!In->fail())

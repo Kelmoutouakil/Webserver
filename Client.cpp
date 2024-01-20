@@ -31,6 +31,7 @@ Client& Client::operator=(const Client &obj)
     fd = obj.fd;
     check = obj.check;
     Serv = obj.Serv;
+    iN = NULL;
 
     return *this;
 }
