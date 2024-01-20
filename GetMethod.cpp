@@ -77,7 +77,7 @@ void    Client::ParseKeyValue(std::string &ln, std::string line)
     std::string second;
 
     if (std::count(line.begin(), line.end(), ':') == 0)
-        ServeError("400", " Bad Request\r\n");
+        ServeError("400", " Bad Request\r\n");  
     second = line.substr(line.find(":") + 1);
     line = line.substr(0, line.find(":"));
     std::stringstream a(line);
@@ -120,7 +120,7 @@ void Client::ReadMore()
 {
 
     int r = read(fd, buffer, BUFFER_SIZE - 1);
-    if (!r)
+    if (!r) 
         ServeError("400", " Bad Request\r\n");
     buffer[r] = 0;
     request.insert(request.end(), buffer , buffer + r);

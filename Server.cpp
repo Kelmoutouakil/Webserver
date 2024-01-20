@@ -26,11 +26,11 @@ Server::Server()
     serverName.push_back("Default");
     index.push_back("index.html");
     autoindex = 0;
-    //uploads = 0;
     allow_methods["GET"] = 0;
     allow_methods["POST"] = 0;
     allow_methods["DELETE"] = 0;
-    client_body_timeout = 10;
+    client_body_timeout = 30;
+    client_max_body_size = 10485760;
 }
 
 void    Server::CreationBindListen()
@@ -63,9 +63,8 @@ void    Server::CreationBindListen()
     }
 }
 
-Location  Server::buildClass(std::string v)
+std::vector<std::string> fillhelper(std::string v)
 {
-    Location o;
     std::stringstream ss(v);
     std::string word;
     size_t i = 0;
@@ -79,8 +78,15 @@ Location  Server::buildClass(std::string v)
             helper.push_back(word.substr(0,i - 1));
             helper.push_back(";");
         }
-         helper.push_back(word);
+        helper.push_back(word);
     }
+    return(helper);
+}
+
+Location  Server::buildClass(std::string v)
+{
+    Location o;
+    std::vector<std::string>helper = fillhelper(v);
     std::vector<std::string>::iterator it = helper.begin();
     for(;it != helper.end();it++)
     {
