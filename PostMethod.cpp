@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 18:58:37 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/20 10:17:20 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/20 10:47:31 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,12 +134,8 @@ void Client::PostMethodfunc()
         }
         else if(header.find("Transfer-Encoding") != header.end())
         {
-<<<<<<< HEAD
             OpeningFile(); 
             if(header["Transfer-Encoding"] == "chunked")
-=======
-            if(header["Transfer-Encoding"] == "Chunked")
->>>>>>> 231b684352e44d8104a935703e7dc53ae1f46676
             {
                 if(body.substr(body.size() -  4,4) == "\r\n\r\n")
                     {
