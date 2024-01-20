@@ -31,7 +31,9 @@ void    Client::SendHeader(std::string extension)
 
 void    Client::ServeDirectory()
 {
-
+    dirent *t;
+    while((t = readdir(iN)) != NULL)
+        std::cout << t->d_name << std::endl;
 }
 
 void    Client::GetMethod()
@@ -125,7 +127,7 @@ void Client::ReadMore()
     if (request.find("\r\n\r\n") != std::string::npos)
     {
         readMore = 0;
-        std::string head(request.substr(0, request.find("\r\n\r\n")));
+        std::string head(request.substr(0, request.find("\r\n\r\n") + 2));
         body.insert(body.end(),  request.begin() + request.find("\r\n\r\n") + 4, request.end());
         ParseFirstLine(head.substr(0, head.find("\r\n")));
         head.erase(head.begin() , head.begin() + head.find("\r\n") + 2);
