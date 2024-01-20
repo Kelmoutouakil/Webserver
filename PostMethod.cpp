@@ -139,9 +139,9 @@ void Client::PostMethodfunc()
                 }
             }
         }
-        else if(header.find("Transfert_Encoding") != header.end())
+        else if(header.find("Transfer-Encoding") != header.end())
         {
-            if(header["Transfert_Encoding"] == "chunked")
+            if(header["Transfer-Encoding"] == "Chunked")
             {
                 total = read(fd,Store,BUFFER_SIZE - 1);
                 if(total > 0)
