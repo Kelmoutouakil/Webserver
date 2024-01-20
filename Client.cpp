@@ -10,6 +10,9 @@ Client::Client(int Fd,Server *serv) : Serv(serv) ,fd(Fd)
     check = -1;
     In = new InFile();
     Out = new std::ofstream();
+    reserve = "";
+    chunked = -1;
+    flag = false;
 }
 
 Client::Client(const Client &obj)
@@ -21,7 +24,7 @@ Client::Client(const Client &obj)
 Client& Client::operator=(const Client &obj)
 {
     for (int i = 0; i < 3; i++)
-        M_U_V[i] =  obj.M_U_V[i];
+    M_U_V[i] =  obj.M_U_V[i];
     readMore = obj.readMore;
     header =  obj.header;
     body =  obj.body;
@@ -30,8 +33,10 @@ Client& Client::operator=(const Client &obj)
     In =  obj.In;
     fd = obj.fd;
     check = obj.check;
+    chunked = obj.chunked;
     Serv = obj.Serv;
     iN = NULL;
+    reserve = obj.reserve;
 
     return *this;
 }

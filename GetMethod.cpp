@@ -121,7 +121,7 @@ void Client::ReadMore()
     int r = read(fd, buffer, BUFFER_SIZE - 1);
     if (!r) 
         ServeError("400", " Bad Request\r\n");
-    buffer[r] = 0;
+   
     request.insert(request.end(), buffer , buffer + r);
     if (request.find("\r\n\r\n") != std::string::npos)
     {
