@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 18:58:37 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/19 19:47:24 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/20 09:36:48 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ void Client::ChunckedMethod()
     std::string line;
     size_t i;
     size_t chunkSize;
-    size_t len = body.length();
+    size_t len = body.size();
     size_t totalSize = BUFFER_SIZE;
     try
     {
@@ -56,8 +56,8 @@ void Client::ChunckedMethod()
             body.erase(0, i  + 2+ chunkSize);
             len -= i + 2 + chunkSize;
             totalSize -= i + 2 + chunkSize;
-            }
         }
+    }
     catch(const std::exception& e)
     {
             std::cerr << e.what() << '\n';
@@ -139,10 +139,13 @@ void Client::PostMethodfunc()
                 }
             }
         }
-        else if(header.find("Transfert_Encoding") != header.end())
+        else if(header.find("Transfer-Encoding") != header.end())
         {
-            if(header["Transfert_Encoding"] == "chunked")
+             OpeningFile(); 
+            if(header["Transfer-Encoding"] == "chunked")
             {
+                std::cout<< body << " ******\n";
+                exit(0);
                 total = read(fd,Store,BUFFER_SIZE - 1);
                 if(total > 0)
                 {
