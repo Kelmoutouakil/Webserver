@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 18:58:37 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/20 10:47:31 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/20 11:07:07 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ void Client::ChunckedMethod()
     size_t chunkSize;
     size_t len = body.size();
     size_t totalSize = BUFFER_SIZE;
+   
     while(len > 0 &&  totalSize > 0)
     { 
         i = body.find("\r\n");
@@ -81,7 +82,7 @@ void Client::OpeningFile()
             filename+= name;
     }
     else
-       ServeError("403"," Forbidden\r\n");
+        ServeError("403"," Forbidden\r\n");
     Out->open(filename, std::ios::out | std::ios::app);
     if(!Out->is_open())
         throw std::runtime_error("Couldn't open file ");
@@ -89,11 +90,13 @@ void Client::OpeningFile()
 
 void Client::PostMethodfunc()
 {
+   
     char Store[BUFFER_SIZE];
     int total  = 0;
     int content_length;
     if(location->uploads.size() >= 2 && *(location->uploads.begin()) == "on")
     { 
+   
         std::map<std::string,std::string>::iterator it = header.find("Content-Length");
         if(it != header.end())
         {

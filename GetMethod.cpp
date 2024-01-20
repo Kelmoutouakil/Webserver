@@ -107,9 +107,8 @@ void   Client::ParseFirstLine(std::string line)
     }
     else
         ServeError("404", " Not found\r\n");
-    std::cout << " >" << location->root << "<" << std::endl;
     if ((dir = opendir(location->root.c_str())) == NULL)
-        ServeError("404", " Not Found\r\n");
+            ServeError("404", " Not Found\r\n");
     closedir(dir);
     request.erase(request.begin(), request.begin() + request.find("\r\n") + 2);
 }
@@ -146,6 +145,7 @@ void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
         std::cout << "hello fd:" <<  fd << std::endl;
         if (readMore)
             ReadMore();
+        
         else if (M_U_V[0] == "GET")
         {
             std::cout << "\33[1;32mhello\n\33[0m";
