@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 18:58:37 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/20 18:25:36 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/21 19:19:31 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,58 +186,114 @@ void Client::PostMethodfunc()
                 flag = true;
             }
             size_t i ;
-            std::string line ;
-            size_t len;
+            std::string line;
             if(header["Transfer-Encoding"] == "chunked")
             {
-                if(chunked == -1)
-                {
-                len = body.size();
                 i = body.find("\r\n");
-                line = body.substr(0,i);
-                i+= 2;
-                chunkSize = std::stoi(line, NULL, 16);
-                if(chunkSize == 0)
-                    throw std::runtime_error("");
-                if(len  <= chunkSize)
+                if(i  == std::string::npos && chunked == -1)
                 {
                     total = read(fd,Store,BUFFER_SIZE - 1);
                     if(total > 0)
                     {
                         Store[total] = '\0';
                         body.insert(body.end(),Store, Store + total);
+                        i = body.find("\r\n");
+                        line = body.substr(0,i);
+                        i+= 2;
+                        chunkSize = std::stoi(line, NULL, 16);
+                        if(chunkSize == 0)
+                            throw std::runtime_error("");
                         if(body.size() >= chunkSize)
                         {
-                            *Out << body.substr(i,chunkSize);
+                            Out->write((body.substr(i,chunkSize)).c_str(),(body.substr(i,chunkSize)).size());
                             body.erase(0, i  + 2 + chunkSize);
+                            chunked = -1;
                         }
                         else
-                            chunked = 0;
+                            chunked = 0;   
                     }
                 }
-                else
+                else if(chunked == 0 && i != std::string::npos)
                 {
-                    *Out << body.substr(i,chunkSize);
-                    body.erase(i,chunkSize);
+                    total = read(fd,Store,BUFFER_SIZE - 1);
+                    Store[total] = '\0';
+                    body.insert(body.end(),Store, Store + total);
+                    if(body.size() >= chunkSize)
+                    {
+                        i+= 2;
+                        Out->write((body.substr(i,chunkSize)).c_str(),(body.substr(i,chunkSize)).size());
+                        body.erase(0,i + chunkSize +  2);
+                        chunked = -1;
+                    }
+                    else
+                        chunked = 0;
                 }
-            }
-            else 
-            {
-                total = read(fd,Store,BUFFER_SIZE - 1);
-                Store[total] = '\0';
-                body.insert(body.end(),Store, Store + total);
-                std::cout << body.size()<< " body size : \n";
-                if(body.size() >= chunkSize)
+                else if(chunked == -1 && i != std::string::npos)
                 {
-                    i = body.find("\r\n") + 2;
-                    Out->write((body.substr(i,chunkSize)).c_str(),(body.substr(i,chunkSize)).size());
-                    //*Out << std::flush;
-                    body.erase(0,i + chunkSize +  2);
-                    chunked = -1;
+                    // std::cout << i << "\n";
+                    // std::cout << "------->"<< body << "<-----\n";
+                        line = body.substr(0,i);
+                        i+= 2;
+                        chunkSize = std::stoi(line, NULL, 16);
+                        if(chunkSize == 0)
+                            throw std::runtime_error("");
+                        if(body.size() >= chunkSize)
+                        {
+                            Out->write((body.substr(i,chunkSize)).c_str(),(body.substr(i,chunkSize)).size());
+                            body.erase(0, i  + 2 + chunkSize);
+                            chunked = -1;
+                        }
+                        else
+                            chunked = 0;   
                 }
-                else
-                    chunked = 0;
-            }
+            //     if(chunked == -1)
+            //     { 
+            //         len = body.size();
+            //         i = body.find("\r\n");
+            //         line = body.substr(0,i);
+            //         i+= 2;
+            //         chunkSize = std::stoi(line, NULL, 16);
+            //         if(chunkSize == 0)
+            //             throw std::runtime_error("");
+            //         if(len  <= chunkSize) 
+            //         { 
+            //             total = read(fd,Store,BUFFER_SIZE - 1);
+            //             if(total > 0)
+            //             {
+            //                 Store[total] = '\0';
+            //                 body.insert(body.end(),Store, Store + total);
+            //                 if(body.size() >= chunkSize)
+            //                 {
+            //                     Out->write((body.substr(i,chunkSize)).c_str(),(body.substr(i,chunkSize)).size());
+            //                     body.erase(0, i  + 2 + chunkSize);
+            //                 }
+            //                 else
+            //                     chunked = 0;
+            //             }
+            //         }
+            //         else
+            //         {
+            //             *Out << body.substr(i,chunkSize);
+            //             body.erase(i,chunkSize);
+            //         }
+            // }
+            // else 
+            // {
+            //     total = read(fd,Store,BUFFER_SIZE - 1);
+            //     Store[total] = '\0';
+            //     body.insert(body.end(),Store, Store + total);
+            //     std::cout << body.size()<< " body size : \n";
+            //     if(body.size() >= chunkSize)
+            //     {
+            //         i = body.find("\r\n") + 2;
+            //         Out->write((body.substr(i,chunkSize)).c_str(),(body.substr(i,chunkSize)).size());
+            //         //*Out << std::flush;
+            //         body.erase(0,i + chunkSize +  2);
+            //         chunked = -1;
+            //     }
+            //     else
+            //         chunked = 0;
+            // }
                 
             }
         }
