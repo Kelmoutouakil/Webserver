@@ -60,6 +60,7 @@ class Client
         void    OpeningFile();
         void    ServeDirectory();
         void    processChunk(size_t startIndex);
+        void    WriteResponse();
 };
 
 bool fileExists(const std::string filePath) ;
