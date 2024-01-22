@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 18:58:37 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/21 19:19:31 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/22 11:14:02 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,70 +37,23 @@ void  Client::PostMethod()
 void Client::ChunckedMethod()
 {
     
-    
-    // std::string line;
-    // size_t i;
-    
-    // size_t chunkSize;
-    // int j = body.size();
-    // if (j > 1 && body.substr(j - 2, 2) != "\r\n")
-    // {
-    //     while (j > 1 && body[j - 1] != '\r' && body[j - 2] != '\n')
-    //         j--;
-    //     reserve = body.substr(j - 1);
-    //     body.erase(j - 1);
-    //     // std::cout << "***************************\n";
-    //     // std::cout<<"--->" <<reserve<<"<--------\n";
-    //     // std::cout << "***************************\n";
-    //     // std::cout << "***************************\n";
-    //     // std::cout<<"--->" <<body<<"<--------\n";
-    //     // std::cout << "***************************\n";
-    //     size_t len = body.length();
-        
-    //     while(len > 0)
-    //     { 
-    //         i = body.find("\r\n");
-    //         line = body.substr(0,i); 
-    //         i+= 2;
-    //         chunkSize = std::stoi(line, NULL, 16);
-    //         std::cout << "chunk : " << chunkSize << "\n";
-    //         if(i ==  body.size())
-    //             break;
-    //         if (chunkSize == 0)
-    //             break;
-    //         if(i ==  body.size())
-    //             break;
-    //         *Out<< body.substr(i ,chunkSize);;
-    //         body.erase(0, i  + ++chunkSize);
-    //          std::cout << "len : "<<  (i + 2 + chunkSize)<< "\n"; 
-    //         std::cout << "***************************\n";
-    //         len -= (i + 2 + chunkSize);
-           
-    //     }
-    //     // if(chunkSize == 0)
-    //         throw std::runtime_error("");
-    // }
-    // else
-    // {
-    //     size_t len = body.size();
-    //     size_t totalSize = BUFFER_SIZE;
-    //     while(len > 0 &&  totalSize > 0)
-    //     { 
-            
-    //         i = body.find("\r\n");
-    //         line = body.substr(0,i);
-    //         i+= 2;
-    //         chunkSize = std::stoi(line, NULL, 16);
-    //         if (chunkSize == 0)
-    //          break;
-    //         *Out<< body.substr(i ,chunkSize);;
-    //         body.erase(0, i  + 2+ chunkSize);
-    //         len -= i + 2 + chunkSize;
-    //         totalSize -= i + 2 + chunkSize;
-    //     }
-    // }
 }
-
+void Client::processChunk(size_t startIndex)
+{
+    std::string line = body.substr(0, startIndex);
+    size_t i = startIndex + 2;
+    chunkSize = std::stoi(line, NULL, 16);
+    if (chunkSize == 0)
+        WriteResponse();
+    if (body.size() >= i + 2 + chunkSize)
+    {
+        Out->write(body.substr(i, chunkSize).c_str(), chunkSize);
+        body.erase(0, i + 2 + chunkSize);
+        chunked = -1;
+    }
+    else
+        chunked = 0;
+}
 std::string findExtension(std::string t)
 {
     std::map<std::string,std::vector<std::string> >::iterator it = Server::mimeTypes.find(t);
@@ -131,7 +84,13 @@ void Client::OpeningFile()
     if(!Out->is_open())
         throw std::runtime_error("Couldn't open file ");
 }
-
+void Client:: WriteResponse()
+{
+    std::string tmp;
+    tmp = M_U_V[2] + " 200 OK\r\nContent-Type: text/html"+"\r\n\r\nstatus: success\n message: File successfully uploaded\r\n";
+    write(fd,tmp.c_str(),tmp.length());
+    throw std::runtime_error("");
+}
 void Client::PostMethodfunc()
 {
     
@@ -151,15 +110,10 @@ void Client::PostMethodfunc()
             }
             content_length = std::stoi(header["Content-Length"]);
             if( body.size() >= (size_t)content_length)
-                {
-                    PostMethod();
-                    write(fd,M_U_V[2].c_str(),M_U_V[2].length());
-                    write(fd," 200 OK\r\n",9);
-                    write(fd,"Content-Type: ",14);
-                    write(fd,header["Content-Type"].c_str(),header["Content-Type"].length());
-                    write(fd,"\r\n\r\nstatus: success\n message: File successfully uploaded\r\n",58);
-                    throw std::runtime_error("");
-                }
+            {
+                PostMethod();
+                WriteResponse();
+            }
             total = read(fd,Store,BUFFER_SIZE - 1);
             if (total > 0 )
             {
@@ -168,14 +122,7 @@ void Client::PostMethodfunc()
                 body.insert(body.end(),Store, Store + total);
                 PostMethod();
                 if(count >= content_length)
-                {
-                    write(fd,M_U_V[2].c_str(),M_U_V[2].length());
-                    write(fd," 200 OK\r\n",9);
-                    write(fd,"Content-Type: ",14);
-                    write(fd,header["Content-Type"].c_str(),header["Content-Type"].length());
-                    write(fd,"\r\n\r\nstatus: success\n message: File successfully uploaded\r\n",58);
-                    throw std::runtime_error("");
-                }
+                    WriteResponse();
             }
         }
         else if(header.find("Transfer-Encoding") != header.end())
@@ -185,119 +132,41 @@ void Client::PostMethodfunc()
                 OpeningFile();
                 flag = true;
             }
-            size_t i ;
+            size_t      i;
             std::string line;
             if(header["Transfer-Encoding"] == "chunked")
             {
                 i = body.find("\r\n");
-                if(i  == std::string::npos && chunked == -1)
+                if (i == std::string::npos && chunked == -1)
                 {
-                    total = read(fd,Store,BUFFER_SIZE - 1);
-                    if(total > 0)
+                    total = read(fd, Store, BUFFER_SIZE - 1);
+                    if (total > 0)
                     {
                         Store[total] = '\0';
-                        body.insert(body.end(),Store, Store + total);
+                        body.insert(body.end(), Store, Store + total);
                         i = body.find("\r\n");
-                        line = body.substr(0,i);
-                        i+= 2;
-                        chunkSize = std::stoi(line, NULL, 16);
-                        if(chunkSize == 0)
-                            throw std::runtime_error("");
-                        if(body.size() >= chunkSize)
-                        {
-                            Out->write((body.substr(i,chunkSize)).c_str(),(body.substr(i,chunkSize)).size());
-                            body.erase(0, i  + 2 + chunkSize);
-                            chunked = -1;
-                        }
-                        else
-                            chunked = 0;   
+                        processChunk(i);
                     }
                 }
-                else if(chunked == 0 && i != std::string::npos)
+                else if (chunked == 0 && i != std::string::npos)
                 {
-                    total = read(fd,Store,BUFFER_SIZE - 1);
+                    total = read(fd, Store, BUFFER_SIZE - 1);
                     Store[total] = '\0';
-                    body.insert(body.end(),Store, Store + total);
-                    if(body.size() >= chunkSize)
+                    body.insert(body.end(), Store, Store + total);
+                    if (body.size() >= i  + 4 + chunkSize)
                     {
-                        i+= 2;
-                        Out->write((body.substr(i,chunkSize)).c_str(),(body.substr(i,chunkSize)).size());
-                        body.erase(0,i + chunkSize +  2);
+                        Out->write(body.substr(i + 2, chunkSize).c_str(), chunkSize);
+                        body.erase(0, i + 4 + chunkSize);
                         chunked = -1;
-                    }
+                    } 
                     else
                         chunked = 0;
                 }
-                else if(chunked == -1 && i != std::string::npos)
-                {
-                    // std::cout << i << "\n";
-                    // std::cout << "------->"<< body << "<-----\n";
-                        line = body.substr(0,i);
-                        i+= 2;
-                        chunkSize = std::stoi(line, NULL, 16);
-                        if(chunkSize == 0)
-                            throw std::runtime_error("");
-                        if(body.size() >= chunkSize)
-                        {
-                            Out->write((body.substr(i,chunkSize)).c_str(),(body.substr(i,chunkSize)).size());
-                            body.erase(0, i  + 2 + chunkSize);
-                            chunked = -1;
-                        }
-                        else
-                            chunked = 0;   
-                }
-            //     if(chunked == -1)
-            //     { 
-            //         len = body.size();
-            //         i = body.find("\r\n");
-            //         line = body.substr(0,i);
-            //         i+= 2;
-            //         chunkSize = std::stoi(line, NULL, 16);
-            //         if(chunkSize == 0)
-            //             throw std::runtime_error("");
-            //         if(len  <= chunkSize) 
-            //         { 
-            //             total = read(fd,Store,BUFFER_SIZE - 1);
-            //             if(total > 0)
-            //             {
-            //                 Store[total] = '\0';
-            //                 body.insert(body.end(),Store, Store + total);
-            //                 if(body.size() >= chunkSize)
-            //                 {
-            //                     Out->write((body.substr(i,chunkSize)).c_str(),(body.substr(i,chunkSize)).size());
-            //                     body.erase(0, i  + 2 + chunkSize);
-            //                 }
-            //                 else
-            //                     chunked = 0;
-            //             }
-            //         }
-            //         else
-            //         {
-            //             *Out << body.substr(i,chunkSize);
-            //             body.erase(i,chunkSize);
-            //         }
-            // }
-            // else 
-            // {
-            //     total = read(fd,Store,BUFFER_SIZE - 1);
-            //     Store[total] = '\0';
-            //     body.insert(body.end(),Store, Store + total);
-            //     std::cout << body.size()<< " body size : \n";
-            //     if(body.size() >= chunkSize)
-            //     {
-            //         i = body.find("\r\n") + 2;
-            //         Out->write((body.substr(i,chunkSize)).c_str(),(body.substr(i,chunkSize)).size());
-            //         //*Out << std::flush;
-            //         body.erase(0,i + chunkSize +  2);
-            //         chunked = -1;
-            //     }
-            //     else
-            //         chunked = 0;
-            // }
-                
-            }
+                else if (chunked == -1 && i != std::string::npos)
+                    processChunk(i);
+            }  
         }
-    }
+}
     else
         ServeError("403", " Forbidden\r\n");
 }
