@@ -126,6 +126,14 @@ Location  Server::buildClass(std::string v)
                 it+= 2;
             }
         }
+        if(*it = "autoindex")
+        {
+            it++;
+            if(*it == "on")
+                autoindex = true;
+            else if (*it != "off")
+                throw std::runtime_error("Error in location ");
+        }
     }
     return o;
 }
