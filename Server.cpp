@@ -126,7 +126,7 @@ Location  Server::buildClass(std::string v)
                 it+= 2;
             }
         }
-        if(*it = "autoindex")
+        if(*it == "autoindex")
         {
             it++;
             if(*it == "on")
