@@ -225,7 +225,7 @@ void Server::AddNewClient(fd_set *FdRd, fd_set *FdWr)
     client.push_back(Client(fd_socket, this));
     FD_SET(fd_socket, FdRd);
     FD_SET(fd_socket, FdWr);
-    std::cout << "\nhello add new client \n";
+    std::cout << R <<"\nhello add new client \n" << D;
 }
 
 void Server::run(WebServer & web)
@@ -255,6 +255,7 @@ void Server::run(WebServer & web)
     }
     catch(std::exception& e)
     {
+        //closedir(client[i].iN);
         client[i].In->close();
         client[i].Out->close();
         close(client[i].fd);

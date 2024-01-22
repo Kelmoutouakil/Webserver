@@ -33,4 +33,4 @@ class WebServer
         WebServer(int, char **);
 };
 
-void Header(std::map<std::string, std::string> header);
+void Header(std::map<std::string, std::string> header, std::string FirstLine[3]);

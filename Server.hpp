@@ -28,7 +28,7 @@ class Location
   {
     root = "";
   }
-     std::string root;
+    std::string root;
     std::vector<std::string> index;
     std::map<int,std::string> Return;
     std::vector<std::string> uploads;

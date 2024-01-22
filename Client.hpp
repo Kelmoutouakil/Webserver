@@ -9,12 +9,16 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <map>
+#define R "\33[1;31m"
+#define G "\33[1;32m"
+#define Y "\33[1;33m"
+#define B "\33[1;34m"
+#define D "\33[1m"
 class Location;
 class Server;
 
 class Client
 {
-        DIR *iN;
         bool readMore;
         std::string request;
         std::string response;
@@ -26,6 +30,7 @@ class Client
         Server *Serv;
         Location *location;
     public:
+        DIR *iN;
         int count;
         int check;
         std::ofstream *Out;
@@ -35,6 +40,7 @@ class Client
         Client(int, Server*);
         ~Client();
         Client(const Client &obj);
+        void    GetFile();
         void    handleRequest(fd_set *, fd_set *);
         void    ParseKeyValue(std::string&, std::string);
         void    ParseHeader(std::string &);
