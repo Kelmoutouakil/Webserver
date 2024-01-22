@@ -29,10 +29,14 @@ class Client
         char buffer[BUFFER_SIZE];
         Server *Serv;
         Location *location;
+        std::string reserve;
+        bool flag;
     public:
         DIR *iN;
         int count;
         int check;
+        int chunked;
+        size_t chunkSize;
         std::ofstream *Out;
         InFile *In;
         int fd;
