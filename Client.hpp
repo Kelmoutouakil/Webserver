@@ -53,6 +53,7 @@ class Client
         void    ServeError(const std::string &, const std::string &);
         void    OpeningFile();
         void    ServeDirectory();
+        void    processChunk(size_t startIndex);
 };
 
 bool fileExists(const std::string filePath) ;
