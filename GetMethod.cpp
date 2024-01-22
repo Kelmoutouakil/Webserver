@@ -5,9 +5,6 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-
-
-
 void    Client::SendHeader(std::string extension)
 {
     std::string header;
@@ -32,130 +29,79 @@ void    Client::SendHeader(std::string extension)
 void    Client::ServeDirectory()
 {
     dirent *t;
+
+    iN = opendir((location->root + M_U_V[1]).c_str());
+    write(fd, (M_U_V[2] + " 200 OK\r\n").c_str(), M_U_V[2].length() + 8);
+    write(fd, "Conten-Type: txt/html\r\n\r\n", 25);
+    write(fd, "<html lang=\"en\"> <body>\r\n", 25);
+    std::cout<< "M_U_V[1]:" << R << M_U_V[1] << std::endl;
     while((t = readdir(iN)) != NULL)
-        std::cout << t->d_name << std::endl;
+        write(fd, ("<li><a href=\"" + (std::string)t->d_name + "\">" + t->d_name + "</a></li>\r\n").c_str(), ("<li><a href=\"" + (std::string)t->d_name + "\">" + t->d_name + "</a></li>\r\n").length());
+    write(fd, "</body>\n</html>\r\n", 17);
+    throw std::runtime_error("serv dir");
+    // usleep(1000000);
+    // readMore = 1;
+}
+
+void    Client::GetFile()
+{
+    std::string path(location->root + M_U_V[1]);
+    struct stat st;
+
+    if (stat(path.c_str(), &st) == 0)
+    {
+        std::cout << B << "its enter \n" << D;
+        if (S_ISREG(st.st_mode))
+        {
+            In->open(path.c_str());
+            if (!In->is_open())
+                throw std::runtime_error("input file not open ?");
+            SendHeader(path.substr((path.rfind(".") != std::string::npos )? path.rfind(".") + 1 : 0));
+            return ;
+        }
+        path = (path.back() == '/')? path: path + '/';
+        for(size_t i = 0;i < location->index.size(); i++)
+        {
+            std::string pathfile(path + location->index[i]);
+            if (access(pathfile.c_str(), R_OK) != -1)
+            {
+                In->open(pathfile.c_str());
+                if (!In->is_open())
+                    throw std::runtime_error("input file not open ?");
+                SendHeader(pathfile.substr((pathfile.rfind(".") != std::string::npos)? pathfile.rfind(".") + 1: 0));
+                return ;
+            }
+        }
+        ServeDirectory();
+    }
+    else
+        ServeError("404", " Not Found\r\n");
 }
 
 void    Client::GetMethod()
 {
+    std::stringstream N;
     if (!In->is_open())
+        GetFile();
+    else if (In->eof())
     {
-        for(size_t i = 0;i < location->index.size(); i++)
-        {
-            std::cout << ">" << location->index[i] << "<" << std::endl;
-            if (access((location->root + location->index[i]).c_str(), R_OK) != -1)
-            {
-                In->open((location->root + location->index[i]).c_str());
-                if (!In->is_open())
-                    throw std::runtime_error("input file not open ?");
-                SendHeader((location->root + location->index[i]).substr((location->root + location->index[i]).rfind(".") + 1));
-                return ;
-            }
-            if ((i == location->index.size() - 1) && (iN = opendir(location->root.c_str())) == NULL)
-                ServeError("404", " Not Found\r\n");
-            if (iN != NULL)
-                ServeDirectory();
-        }
+        write(fd, "0\r\n\r\n", 5);
+        throw std::runtime_error("finish");
     }
-    if (!In->fail())
+    else if (!In->fail())
     {
-        std::cout << "fail :" << In->fail() << "\n";
         In->read(buffer, BUFFER_SIZE - 1);
-        write(fd, buffer, (size_t)In->gcount());
+        N << std::uppercase  << std::hex << In->gcount() ;
+        N >> response;
+        response.insert(response.end(), "\r\n" , "\r\n" + 2);
+        response.insert(response.end(), buffer ,buffer + In->gcount());
+        response.insert(response.end(), "\r\n" , "\r\n" + 2);
+        //std::cout << B <<  response << std::endl << D;
+        write(fd, response.c_str(), response.size());
+        //sleep(1);
         std::cout << std::flush;
-        if (In->eof())
-            throw std::runtime_error("hello");
     }
     else
         throw std::runtime_error("error in the input file G2ET\n");
-    std::cout << "out GET\n";
-        
-}
-
-void    Client::ParseKeyValue(std::string &ln, std::string line)
-{
-    std::string second;
-
-    if (std::count(line.begin(), line.end(), ':') == 0)
-        ServeError("400", " Bad Request\r\n");  
-    second = line.substr(line.find(":") + 1);
-    line = line.substr(0, line.find(":"));
-    std::stringstream a(line);
-    std::stringstream b(second);
-    a >> line;
-    b >> second;
-    header[line] = second;
-    ln.erase(ln.begin(), ln.begin() + ln.find("\r\n") + 2);
-}
-
-void   Client::ParseFirstLine(std::string line)
-{
-    std::stringstream first(line);
-    DIR *dir;
-    for (int i = 0;i < 3 && first >> M_U_V[i];i++)
-        ;
-    if (!M_U_V[0][0] || !M_U_V[1][0]|| !M_U_V[1][0])
-        ServeError("400", " Bad Request\r\n");
-    while (M_U_V[1].length() && Serv->locations.find(M_U_V[1]) == Serv->locations.end())
-        M_U_V[1].pop_back();
-    if (Serv->locations.find(M_U_V[1]) != Serv->locations.end())
-    {
-        location = &Serv->locations[M_U_V[1]];
-        if (location->root.back() == '/')
-            location->root.erase(location->root.end() - 1);
-        if (M_U_V[1].back() != '/')
-            M_U_V[1].append("/");
-        location->root.append(M_U_V[1]);
-    }
-    else
-        ServeError("404", " Not found\r\n");
-    if ((dir = opendir(location->root.c_str())) == NULL)
-            ServeError("404", " Not Found\r\n");
-    closedir(dir);
-    request.erase(request.begin(), request.begin() + request.find("\r\n") + 2);
-}
-
-void Client::ReadMore()
-{
-
-    int r = read(fd, buffer, BUFFER_SIZE - 1);
-    if (!r) 
-        ServeError("400", " Bad Request\r\n");
-   
-    request.insert(request.end(), buffer , buffer + r);
-    if (request.find("\r\n\r\n") != std::string::npos)
-    {
-        readMore = 0;
-        std::string head(request.substr(0, request.find("\r\n\r\n") + 2));
-        body.insert(body.end(),  request.begin() + request.find("\r\n\r\n") + 4, request.end());
-        ParseFirstLine(head.substr(0, head.find("\r\n")));
-        head.erase(head.begin() , head.begin() + head.find("\r\n") + 2);
-        while(head.find("\r\n") != std::string::npos)
-            ParseKeyValue(head, head.substr(0, head.find("\r\n")));
-        if (header.find("Host") == header.end())
-            ServeError("400", " Bad Request\r\n");
-        Header(header);
-    }
-}
-
-void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
-{
-    std::string nBytes;
-    std::string response;
-    if (FD_ISSET(fd, Rd) || FD_ISSET(fd, Wr))
-    {
-        std::cout << "hello fd:" <<  fd << std::endl;
-        if (readMore)
-            ReadMore();
-        
-        else if (M_U_V[0] == "GET")
-        {
-            std::cout << "\33[1;32mhello\n\33[0m";
-            GetMethod();
-        }
-        else if(M_U_V[0] == "POST")
-            PostMethodfunc();
-        else if (M_U_V[0] == "DELETE")
-            DeleteMethod();
-    }
+    std::cout << "out GET\n";      
 }

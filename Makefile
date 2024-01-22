@@ -12,15 +12,15 @@ $(NAME): $(OBJF) $(OBJ) $(HEADER)
 
 #%.o:%.cpp
 $(OBJF)/%.o:%.cpp
-	$(CC) $(CPPFLAGS) -c -o $@ $<
+	@$(CC) $(CPPFLAGS) -c -o $@ $<
 $(OBJF):
-	mkdir $(OBJF)
+	@mkdir $(OBJF)
 
 clean:
-	rm -rf $(OBJF)
+	@rm -rf $(OBJF)
 
 fclean: clean
-	rm -rf $(NAME)
+	@rm -rf $(NAME)
 
 re: fclean all	
 

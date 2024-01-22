@@ -46,38 +46,59 @@ Client::~Client()
     std::cout << "client destructor called \n";
 }
 
-void Header(std::map<std::string, std::string> header)
+void Header(std::map<std::string, std::string> header, std::string FirstLine[3])
 {
-    std::cout << "\n\33[1;32m";
+    std::cout << R + (std::string)"request:\n" + G << FirstLine[0] + "|" << FirstLine[1] + "|" << FirstLine[2] + "\n";
     for (std::map<std::string , std::string>::iterator i = header.begin(); i != header.end(); i++)
-        std::cout << "key:" << i->first << "|value:" << i->second << "|\n";
+        std::cout << "|" << i->first << ":" << i->second << "|\n";
     std::cout << "\33[0m\n";
 }
 
 void    Client::ServeError(const std::string &Error, const std::string &reason)
 {
-    std::string response (M_U_V[2]);
-    if (!response.length())
-        response = "HTTP/1.0";
-    response = response + " " + Error + reason + "content-type: txt/html\r\n"; 
+    std::string res (M_U_V[2]);
+    if (!res.length())
+        res = "HTTP/1.0";
+    res +=" " + Error + reason + "Content-Type: txt/html\r\nContent-Length: "; 
     In->open(Serv->errorPages[Error].c_str());
     if (!In->is_open())
-        throw std::runtime_error("Error in opning error file nb:" + Error+ "\n");
+    {
+        std::cout << B << "###################\n" << D;
+        res +=  std::to_string(31 + Error.size()) + "\r\n\r\nError in opning error file nB:" + Error + "\n"; 
+        std::cout << B << res << "\n" <<  D;
+        write(fd, res.c_str(), res.size());
+        throw std::runtime_error(Error);
+    }
     std::string body((std::istreambuf_iterator<char>(*In)), std::istreambuf_iterator<char>());
     int size = In->size();
     std::cout << "size : " << size << std::endl;
     In->read(buffer, size);
-    response = response +  "content-length: " + std::to_string(size) + "\r\n\r\n" + body;
-    write(fd, response.c_str(), response.length());
+    res += std::to_string(size) + "\r\n\r\n" + body;
+    write(fd, res.c_str(), res.length());
     throw std::runtime_error(Error);
 }
-
-
-
-
 
 void    Client::DeleteMethod()
 {
 }
 
-
+void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
+{
+    std::string nBytes;
+    std::string response;
+    if (FD_ISSET(fd, Rd) || FD_ISSET(fd, Wr))
+    {
+        std::cout << G << "hello fd:" <<  fd << std::endl;
+        if (readMore)
+            ReadMore();
+        else if (M_U_V[0] == "GET")
+        {
+            std::cout << "\33[1;32mGET\n\33[0m";
+            GetMethod();
+        }
+        else if(M_U_V[0] == "POST")
+            PostMethodfunc();
+        else if (M_U_V[0] == "DELETE")
+            DeleteMethod();
+    }
+}
