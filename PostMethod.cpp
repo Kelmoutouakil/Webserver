@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/19 18:58:37 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/22 11:10:55 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/22 11:14:02 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,16 +110,10 @@ void Client::PostMethodfunc()
             }
             content_length = std::stoi(header["Content-Length"]);
             if( body.size() >= (size_t)content_length)
-                {
-                    PostMethod();
-                    WriteResponse();
-                    // write(fd,M_U_V[2].c_str(),M_U_V[2].length());
-                    // write(fd," 200 OK\r\n",9);
-                    // write(fd,"Content-Type: ",14);
-                    // write(fd,header["Content-Type"].c_str(),header["Content-Type"].length());
-                    // write(fd,"\r\n\r\nstatus: success\n message: File successfully uploaded\r\n",58);
-                    // throw std::runtime_error("");
-                }
+            {
+                PostMethod();
+                WriteResponse();
+            }
             total = read(fd,Store,BUFFER_SIZE - 1);
             if (total > 0 )
             {
@@ -138,7 +132,7 @@ void Client::PostMethodfunc()
                 OpeningFile();
                 flag = true;
             }
-            size_t i ;
+            size_t      i;
             std::string line;
             if(header["Transfer-Encoding"] == "chunked")
             {
