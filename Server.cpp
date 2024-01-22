@@ -225,11 +225,13 @@ void Server::AddNewClient(fd_set *FdRd, fd_set *FdWr)
     client.push_back(Client(fd_socket, this));
     FD_SET(fd_socket, FdRd);
     FD_SET(fd_socket, FdWr);
-    std::cout << R <<"\nhello add new client \n" << D;
+    std::cout << B << "hello add new client=================================>" << fd_socket<< D << std::endl ;
+    sleep(1);
 }
 
 void Server::run(WebServer & web)
 {
+    static int j;
     size_t i;
     if (fd == -1)
         CreationBindListen();
@@ -245,7 +247,16 @@ void Server::run(WebServer & web)
             FD_SET(client[i].fd, &web.FdRd);
             FD_SET(client[i].fd, &web.FdWr);
         }
-        std::cout << "waiting ...\n";
+        j++;
+        if (j == 1)
+            std::cout << "\rwaiting ...";
+        if (j == 2)
+            std::cout << "\rwaiting .. ";
+        if (j == 3)
+        {
+            std::cout << "\rwaiting .  ";
+            j = 0;
+        }
         if (select(maxFd + 1, &web.FdRd, &web.FdWr, NULL, NULL) < 0) 
             exit(EXIT_FAILURE);
         if (FD_ISSET(fd, &web.FdRd))
@@ -262,7 +273,7 @@ void Server::run(WebServer & web)
         delete client[i].In;
         delete client[i].Out;
         client.erase(client.begin() + i);
-        std::cerr << "\33[1;31m" << e.what() << "\33[0m\n";
+        std::cerr << R << e.what() << D << "\n";
     }
 
 }

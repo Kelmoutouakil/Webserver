@@ -32,6 +32,7 @@ class Location
     std::vector<std::string> index;
     std::map<int,std::string> Return;
     std::vector<std::string> uploads;
+    std::string autoindex;
 };
  
 class Server

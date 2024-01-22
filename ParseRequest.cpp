@@ -34,17 +34,17 @@ void   Client::ParseFirstLine(std::string line)
         location = &Serv->locations[URI];
         if (location->root.back() == '/')
             location->root.pop_back();
-        std::cout << R << location->root << std::endl << D;
+        //std::cout << R << location->root << std::endl << D;
     }
     else
-        ServeError("404", " Not Found\r\n");
-    std::cout << Y << "LOCATION:" << location->root << "<" << std::endl << D;
+        ServeError("4042", " Not Found\r\n");
+    //std::cout << Y << "LOCATION:" << location->root << "<" << std::endl << D;
     request.erase(request.begin(), request.begin() + request.find("\r\n") + 2);
 }
 
 void Client::ReadMore()
 {
-    std::cout  << R << "readMore ...\n" << D;
+    //std::cout  << R << "readMore ...\n" << D;
     int r = read(fd, buffer, BUFFER_SIZE - 1);
     if (!r) 
         ServeError("400", " Bad Request\r\n");
@@ -53,7 +53,10 @@ void Client::ReadMore()
     if (request.find("\r\n\r\n") != std::string::npos)
     {
         readMore = 0;
+        header.clear();
+        body.clear();
         std::string head(request.substr(0, request.find("\r\n\r\n") + 2));
+        std::cout << Y << head << std::endl << D;
         body.insert(body.end(),  request.begin() + request.find("\r\n\r\n") + 4, request.end());
         ParseFirstLine(head.substr(0, head.find("\r\n")));
         head.erase(head.begin() , head.begin() + head.find("\r\n") + 2);
@@ -61,7 +64,8 @@ void Client::ReadMore()
             ParseKeyValue(head, head.substr(0, head.find("\r\n")));
         if (header.find("Host") == header.end())
             ServeError("400", " Bad Request\r\n");
-        
-        Header(header, M_U_V);
+        request.clear();
+        //Header(header, M_U_V);
+        //sleep(2);
     }
 }
