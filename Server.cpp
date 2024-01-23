@@ -80,6 +80,7 @@ std::vector<std::string> fillhelper(std::string v)
         }
         helper.push_back(word);
     }
+
     return(helper);
 }
 
@@ -120,8 +121,10 @@ Location  Server::buildClass(std::string v)
         if(*it == "return")
         {
             it++;
-            while(*(it)!= ";" &&  (it + 2) != helper.end())
+            while(*(it)!= ";" &&  (it + 1) != helper.end())
             {
+                if(*(it + 1 ) == ";")
+                    throw std::runtime_error("Error configuration ");
                 o.Return.insert(std::make_pair(atoi((*it).c_str()),*(it + 1)));
                 it+= 2;
             }
@@ -137,16 +140,14 @@ Location  Server::buildClass(std::string v)
         if(*it == "cgi")
         {
             it++;
-            while(*(it)!= ";" &&  (it + 2) != helper.end())
+            while(*(it)!= ";" &&  (it + 1) != helper.end())
             {
+                if(*(it + 1 ) == ";")
+                    throw std::runtime_error("Error configuration ");
                 o.cgi.insert(std::make_pair(*it,*(it + 1)));
                 it+= 2;
             }
         }
-        std::map<int,std::string> ::iterator ite  =o.Return.begin();
-        for(;ite != o.Return.end();ite++)
-            std::cout<< ite->first << " : "<< ite->second << " <\n";
-        exit(0) ;
     }
     return o;
 }
@@ -247,12 +248,10 @@ void Server::AddNewClient(fd_set *FdRd, fd_set *FdWr)
     FD_SET(fd_socket, FdRd);
     FD_SET(fd_socket, FdWr);
     std::cout << B << "hello add new client=================================>" << fd_socket<< D << std::endl ;
-    sleep(1);
 }
 
 void Server::run(WebServer & web)
 {
-    static int j;
     size_t i;
     if (fd == -1)
         CreationBindListen();
@@ -268,20 +267,12 @@ void Server::run(WebServer & web)
             FD_SET(client[i].fd, &web.FdRd);
             FD_SET(client[i].fd, &web.FdWr);
         }
-        j++;
-        if (j == 1)
-            std::cout << "\rwaiting ...";
-        if (j == 2)
-            std::cout << "\rwaiting .. ";
-        if (j == 3)
-        {
-            std::cout << "\rwaiting .  ";
-            j = 0;
-        }
+        std::cout << B <<  "waiting ...\n" << D;
         if (select(maxFd + 1, &web.FdRd, &web.FdWr, NULL, NULL) < 0) 
             exit(EXIT_FAILURE);
         if (FD_ISSET(fd, &web.FdRd))
             AddNewClient(&web.FdRd, &web.FdWr);
+        std::cout <<  G << "client nb:" << client.size() << D << std::endl;
         for (i = 0; i < client.size(); i++)
             client[i].handleRequest(&web.FdRd, &web.FdWr);
     }
@@ -294,7 +285,7 @@ void Server::run(WebServer & web)
         delete client[i].In;
         delete client[i].Out;
         client.erase(client.begin() + i);
-        std::cerr << R << e.what() << D << "\n";
+        std::cerr << R << e.what() << "i:" << i << D << "\n";
     }
 
 }

@@ -21,11 +21,19 @@ void    Client::ParseKeyValue(std::string &ln, std::string line)
 
 void   Client::ParseFirstLine(std::string line)
 {
+    size_t pos;
     std::stringstream first(line);
     for (int i = 0;i < 3 && first >> M_U_V[i];i++)
         ;
     if (!M_U_V[0][0] || !M_U_V[1][0]|| !M_U_V[1][0])
         ServeError("400", " Bad Request\r\n");
+    if (M_U_V[1].size() > 4096)
+        ServeError("414", " Request-URI Too Large\r\n");
+    if ((pos = query.find("?")) != std::string::npos)
+    {
+        query = M_U_V[1].substr(M_U_V[1].find("?") + 1);
+        M_U_V[1].erase(M_U_V[1].begin() + pos, M_U_V[1].end());
+    }
     std::string URI(M_U_V[1]);
     while (URI.length() && Serv->locations.find( URI) == Serv->locations.end())
         URI.pop_back();
@@ -34,10 +42,10 @@ void   Client::ParseFirstLine(std::string line)
         location = &Serv->locations[URI];
         if (location->root.back() == '/')
             location->root.pop_back();
-        //std::cout << R << location->root << std::endl << D;
+        std::cout << R << "set the assosiated location:"  << fd << "|" << "root:" <<location->root << "|name:" << URI << std::endl << D;
     }
     else
-        ServeError("4042", " Not Found\r\n");
+        ServeError("404", " Not Found\r\n");
     //std::cout << Y << "LOCATION:" << location->root << "<" << std::endl << D;
     request.erase(request.begin(), request.begin() + request.find("\r\n") + 2);
 }
@@ -47,7 +55,7 @@ void Client::ReadMore()
     //std::cout  << R << "readMore ...\n" << D;
     int r = read(fd, buffer, BUFFER_SIZE - 1);
     if (!r) 
-        ServeError("400", " Bad Request\r\n");
+        ServeError("the socket my have disconnected", " Bad Request\r\n");
     buffer[r] = 0;
     request.insert(request.end(), buffer , buffer + r);
     if (request.find("\r\n\r\n") != std::string::npos)
@@ -66,6 +74,5 @@ void Client::ReadMore()
             ServeError("400", " Bad Request\r\n");
         request.clear();
         //Header(header, M_U_V);
-        //sleep(2);
     }
 }

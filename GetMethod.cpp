@@ -28,25 +28,29 @@ void    Client::SendHeader(std::string extension)
 
 void    Client::ServeDirectory()
 {
+    std::string fil;
+    std::string prefix("<li><a href=\"http://" + Serv->ipAdress + M_U_V[1] + ((M_U_V[1].back() == '/')? "":"/"));
     dirent *t;
 
-    location->autoindex = "on";
-    if (location->autoindex == "of" || (iN = opendir((location->root + M_U_V[1]).c_str())) == NULL)
-        ServeError("4044", " Not Found\r\n");
-    write(fd, (M_U_V[2] + " 200 OK\r\n").c_str(), M_U_V[2].length() + 8);
-    write(fd, "Conten-Type: txt/html\r\n\r\n", 25);
-    write(fd, "<html lang=\"en\"> <body>\r\n", 25);
-    //std::cout<< "M_U_V[1]:" << R << M_U_V[1] << std::endl;
+    std::cout << "autoindex :" << location->autoindex << std::endl;
+    if (!location->autoindex || (iN = opendir((location->root + M_U_V[1]).c_str())) == NULL)
+        ServeError("404", " Not Found\r\n");
+    response = M_U_V[2] + " 200 OK\r\nConten-Type: txt/html\r\n\r\n<html lang=\"en\"> <body>\r\n";
     while((t = readdir(iN)) != NULL)
-        write(fd, ("<li><a href=\"" + (std::string)t->d_name + "\">" + t->d_name + "</a></li>\r\n").c_str(), ("<li><a href=\"" + (std::string)t->d_name + "\">" + t->d_name + "</a></li>\r\n").length());
-    write(fd, "</body>\n</html>\r\n", 17);
+    {
+        if (t->d_type == DT_DIR)
+            response += prefix + (std::string)t->d_name + "\">" + t->d_name + "/</a></li>\r\n";
+        else
+            fil += prefix + (std::string)t->d_name + "\">" + t->d_name + "</a></li>\r\n";
+    }
+    response +=  fil + "</body>\n</html>\r\n";
+    write(fd, response.c_str(), response.size());
     throw std::runtime_error("serv directory");
-    // usleep(1000000);d
-    // readMore = 1;
 }
 
 void    Client::GetFile()
 {
+    std::cout << G << "lcation root:\n" << location->root << "\nURI:" << M_U_V[1] << std::endl << D;
     std::string path(location->root + M_U_V[1]);
     struct stat st;
 
@@ -84,7 +88,10 @@ void    Client::GetMethod()
 {
     std::stringstream N;
     if (!In->is_open())
+    {
+        std::cout << Y << "size:\n" << fd << "|"<< location << std::endl << D;
         GetFile();
+    }
     else if (In->eof())
     {
         write(fd, "0\r\n\r\n", 5);
