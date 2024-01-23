@@ -143,6 +143,10 @@ Location  Server::buildClass(std::string v)
                 it+= 2;
             }
         }
+        std::map<int,std::string> ::iterator ite  =o.Return.begin();
+        for(;ite != o.Return.end();ite++)
+            std::cout<< ite->first << " : "<< ite->second << " <\n";
+        exit(0) ;
     }
     return o;
 }
