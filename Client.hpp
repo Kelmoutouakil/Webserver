@@ -33,6 +33,7 @@ class Client
         bool flag;
     public:
         DIR *iN;
+        std::string query;
         int count;
         int check;
         int chunked;

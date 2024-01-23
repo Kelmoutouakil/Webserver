@@ -93,18 +93,15 @@ void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
    
     if (FD_ISSET(fd, Rd) || FD_ISSET(fd, Wr))
     {
+        
         if (readMore)
             ReadMore();
         else if (M_U_V[0] == "GET")
-        {
-            //std::cout << "\33[1;32mGET\n\33[0m";
             GetMethod();
-        }
         else if(M_U_V[0] == "POST")
             PostMethodfunc();
         else if (M_U_V[0] == "DELETE")
             DeleteMethod();
-       
         signal(SIGPIPE, Signal);
         if (!ok)
         {

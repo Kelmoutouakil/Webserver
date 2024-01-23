@@ -130,7 +130,7 @@ Location  Server::buildClass(std::string v)
         {
             it++;
             if(*it == "on")
-                autoindex = true;
+                o.autoindex = true;
             else if (*it != "off")
                 throw std::runtime_error("Error in location ");
         }
@@ -234,12 +234,10 @@ void Server::AddNewClient(fd_set *FdRd, fd_set *FdWr)
     FD_SET(fd_socket, FdRd);
     FD_SET(fd_socket, FdWr);
     std::cout << B << "hello add new client=================================>" << fd_socket<< D << std::endl ;
-    sleep(1);
 }
 
 void Server::run(WebServer & web)
 {
-    static int j;
     size_t i;
     if (fd == -1)
         CreationBindListen();
@@ -255,20 +253,12 @@ void Server::run(WebServer & web)
             FD_SET(client[i].fd, &web.FdRd);
             FD_SET(client[i].fd, &web.FdWr);
         }
-        j++;
-        if (j == 1)
-            std::cout << "\rwaiting ...";
-        if (j == 2)
-            std::cout << "\rwaiting .. ";
-        if (j == 3)
-        {
-            std::cout << "\rwaiting .  ";
-            j = 0;
-        }
+        std::cout << B <<  "waiting ...\n" << D;
         if (select(maxFd + 1, &web.FdRd, &web.FdWr, NULL, NULL) < 0) 
             exit(EXIT_FAILURE);
         if (FD_ISSET(fd, &web.FdRd))
             AddNewClient(&web.FdRd, &web.FdWr);
+        std::cout <<  G << "client nb:" << client.size() << D << std::endl;
         for (i = 0; i < client.size(); i++)
             client[i].handleRequest(&web.FdRd, &web.FdWr);
     }
@@ -281,7 +271,7 @@ void Server::run(WebServer & web)
         delete client[i].In;
         delete client[i].Out;
         client.erase(client.begin() + i);
-        std::cerr << R << e.what() << D << "\n";
+        std::cerr << R << e.what() << "i:" << i << D << "\n";
     }
 
 }
