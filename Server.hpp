@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/04 11:48:52 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/22 11:50:03 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/23 11:29:37 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ class Location
     std::map<int,std::string> Return;
     std::vector<std::string> uploads;
     bool autoindex;
+    std::map<std::string,std::string> cgi;
 };
  
 class Server

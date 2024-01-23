@@ -130,9 +130,18 @@ Location  Server::buildClass(std::string v)
         {
             it++;
             if(*it == "on")
-                autoindex = true;
+                o.autoindex = true;
             else if (*it != "off")
                 throw std::runtime_error("Error in location ");
+        }
+        if(*it == "cgi")
+        {
+            it++;
+            while(*(it)!= ";" &&  (it + 2) != helper.end())
+            {
+                o.cgi.insert(std::make_pair(*it,*(it + 1)));
+                it+= 2;
+            }
         }
     }
     return o;
