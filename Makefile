@@ -12,7 +12,7 @@ $(NAME): $(OBJF) $(OBJ) $(HEADER)
 
 #%.o:%.cpp
 $(OBJF)/%.o:%.cpp
-	@$(CC) $(CPPFLAGS) -c -o $@ $<
+	$(CC) $(CPPFLAGS) -c -o $@ $<
 $(OBJF):
 	@mkdir $(OBJF)
 

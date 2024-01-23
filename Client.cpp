@@ -3,6 +3,7 @@
 #include "InFile.hpp"
 #include "Server.hpp"
 
+bool ok;
 Client::Client(int Fd,Server *serv) : Serv(serv) ,fd(Fd)
 {
     readMore = 1;
@@ -63,15 +64,12 @@ void    Client::ServeError(const std::string &Error, const std::string &reason)
     In->open(Serv->errorPages[Error].c_str());
     if (!In->is_open())
     {
-        std::cout << B << "###################\n" << D;
-        res +=  std::to_string(31 + Error.size()) + "\r\n\r\nError in opning error file nB:" + Error + "\n"; 
-        std::cout << B << res << "\n" <<  D;
+        res +=  std::to_string(31 + Error.size()) + "\r\n\r\nError in opning error file nB:" + Error + "\n";
         write(fd, res.c_str(), res.size());
         throw std::runtime_error(Error);
     }
     std::string body((std::istreambuf_iterator<char>(*In)), std::istreambuf_iterator<char>());
     int size = In->size();
-    std::cout << "size : " << size << std::endl;
     In->read(buffer, size);
     res += std::to_string(size) + "\r\n\r\n" + body;
     write(fd, res.c_str(), res.length());
@@ -82,23 +80,36 @@ void    Client::DeleteMethod()
 {
 }
 
+void Signal(int j)
+{
+    (void)j;
+    ok = 0;
+}
+
 void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
 {
     std::string nBytes;
     std::string response;
+   
     if (FD_ISSET(fd, Rd) || FD_ISSET(fd, Wr))
     {
-        std::cout << G << "hello fd:" <<  fd << std::endl;
         if (readMore)
             ReadMore();
         else if (M_U_V[0] == "GET")
         {
-            std::cout << "\33[1;32mGET\n\33[0m";
+            //std::cout << "\33[1;32mGET\n\33[0m";
             GetMethod();
         }
         else if(M_U_V[0] == "POST")
             PostMethodfunc();
         else if (M_U_V[0] == "DELETE")
             DeleteMethod();
+       
+        signal(SIGPIPE, Signal);
+        if (!ok)
+        {
+            ok = 1;
+            throw std::runtime_error("anvalide socket");
+        }
     }
 }

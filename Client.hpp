@@ -13,7 +13,7 @@
 #define G "\33[1;32m"
 #define Y "\33[1;33m"
 #define B "\33[1;34m"
-#define D "\33[1m"
+#define D "\33[0m"
 class Location;
 class Server;
 
@@ -59,6 +59,7 @@ class Client
         void    ServeError(const std::string &, const std::string &);
         void    OpeningFile();
         void    ServeDirectory();
+
         void    processChunk(size_t startIndex);
         void    WriteResponse();
 };

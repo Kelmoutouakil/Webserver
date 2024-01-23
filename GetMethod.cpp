@@ -30,16 +30,18 @@ void    Client::ServeDirectory()
 {
     dirent *t;
 
-    iN = opendir((location->root + M_U_V[1]).c_str());
+    location->autoindex = "on";
+    if (location->autoindex == "of" || (iN = opendir((location->root + M_U_V[1]).c_str())) == NULL)
+        ServeError("4044", " Not Found\r\n");
     write(fd, (M_U_V[2] + " 200 OK\r\n").c_str(), M_U_V[2].length() + 8);
     write(fd, "Conten-Type: txt/html\r\n\r\n", 25);
     write(fd, "<html lang=\"en\"> <body>\r\n", 25);
-    std::cout<< "M_U_V[1]:" << R << M_U_V[1] << std::endl;
+    //std::cout<< "M_U_V[1]:" << R << M_U_V[1] << std::endl;
     while((t = readdir(iN)) != NULL)
         write(fd, ("<li><a href=\"" + (std::string)t->d_name + "\">" + t->d_name + "</a></li>\r\n").c_str(), ("<li><a href=\"" + (std::string)t->d_name + "\">" + t->d_name + "</a></li>\r\n").length());
     write(fd, "</body>\n</html>\r\n", 17);
-    throw std::runtime_error("serv dir");
-    // usleep(1000000);
+    throw std::runtime_error("serv directory");
+    // usleep(1000000);d
     // readMore = 1;
 }
 
@@ -50,7 +52,7 @@ void    Client::GetFile()
 
     if (stat(path.c_str(), &st) == 0)
     {
-        std::cout << B << "its enter \n" << D;
+        //std::cout << B << "its enter \n" << D;
         if (S_ISREG(st.st_mode))
         {
             In->open(path.c_str());
@@ -75,7 +77,7 @@ void    Client::GetFile()
         ServeDirectory();
     }
     else
-        ServeError("404", " Not Found\r\n");
+        ServeError("4045", " Not Found\r\n");
 }
 
 void    Client::GetMethod()
@@ -96,12 +98,9 @@ void    Client::GetMethod()
         response.insert(response.end(), "\r\n" , "\r\n" + 2);
         response.insert(response.end(), buffer ,buffer + In->gcount());
         response.insert(response.end(), "\r\n" , "\r\n" + 2);
-        //std::cout << B <<  response << std::endl << D;
         write(fd, response.c_str(), response.size());
-        //sleep(1);
         std::cout << std::flush;
     }
     else
-        throw std::runtime_error("error in the input file G2ET\n");
-    std::cout << "out GET\n";      
+        throw std::runtime_error("error in the input file G2ET\n"); 
 }
