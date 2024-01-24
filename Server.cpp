@@ -80,6 +80,7 @@ std::vector<std::string> fillhelper(std::string v)
         }
         helper.push_back(word);
     }
+
     return(helper);
 }
 
@@ -120,8 +121,10 @@ Location  Server::buildClass(std::string v)
         if(*it == "return")
         {
             it++;
-            while(*(it)!= ";" &&  (it + 2) != helper.end())
+            while(*(it)!= ";" &&  (it + 1) != helper.end())
             {
+                if(*(it + 1 ) == ";")
+                    throw std::runtime_error("Error configuration ");
                 o.Return.insert(std::make_pair(atoi((*it).c_str()),*(it + 1)));
                 it+= 2;
             }
@@ -137,8 +140,10 @@ Location  Server::buildClass(std::string v)
         if(*it == "cgi")
         {
             it++;
-            while(*(it)!= ";" &&  (it + 2) != helper.end())
+            while(*(it)!= ";" &&  (it + 1) != helper.end())
             {
+                if(*(it + 1 ) == ";")
+                    throw std::runtime_error("Error configuration ");
                 o.cgi.insert(std::make_pair(*it,*(it + 1)));
                 it+= 2;
             }
@@ -188,8 +193,8 @@ void Server::setupglobalroot(std::map<std::string,Location> v)
         if(it->second.root == "")
             it->second.root = this->root;
     }
-    
 }
+
 void Server::funcMimeTypes(std::string filename)
 {
     std::ifstream buffer(filename);
@@ -282,5 +287,4 @@ void Server::run(WebServer & web)
         client.erase(client.begin() + i);
         std::cerr << R << e.what() << "i:" << i << D << "\n";
     }
-
 }
