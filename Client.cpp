@@ -91,6 +91,13 @@ void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
     std::string nBytes;
     std::string response;
    
+    signal(SIGPIPE, Signal);
+    if (!ok)
+    {
+        ok = 1;
+        write(fd, (M_U_V[2] + " Ok 200\r\n\r\n").c_str(), M_U_V[2].size() + 10);
+        throw std::runtime_error("anvalide socket");
+    }
     if (FD_ISSET(fd, Rd) || FD_ISSET(fd, Wr))
     {
         
@@ -102,11 +109,5 @@ void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
             PostMethodfunc();
         else if (M_U_V[0] == "DELETE")
             DeleteMethod();
-        signal(SIGPIPE, Signal);
-        if (!ok)
-        {
-            ok = 1;
-            throw std::runtime_error("anvalide socket");
-        }
     }
 }
