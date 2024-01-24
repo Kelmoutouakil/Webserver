@@ -107,6 +107,7 @@ void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
         {
             ok = 1;
             throw std::runtime_error("anvalide socket");
+            sleep(1);
         }
     }
 }

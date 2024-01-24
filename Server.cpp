@@ -193,8 +193,8 @@ void Server::setupglobalroot(std::map<std::string,Location> v)
         if(it->second.root == "")
             it->second.root = this->root;
     }
-    
 }
+
 void Server::funcMimeTypes(std::string filename)
 {
     std::ifstream buffer(filename);
@@ -287,5 +287,4 @@ void Server::run(WebServer & web)
         client.erase(client.begin() + i);
         std::cerr << R << e.what() << "i:" << i << D << "\n";
     }
-
 }
