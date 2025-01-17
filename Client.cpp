@@ -3,30 +3,41 @@
 #include "InFile.hpp"
 #include "Server.hpp"
 
-bool ok;
-Client::Client(int Fd,Server *serv) : Serv(serv) ,fd(Fd)
+void pp(std::map<std::string, std::string> & header)
+{
+    for (std::map<std::string, std::string>:: iterator i = header.begin(); i != header.end(); i++)
+        std::cout << i->first << ": " << i->second << "|" << std::endl;
+}
+
+Client::Client(int Fd, Server *serv) : Serv(serv) ,fd(Fd)
 {
     readMore = 1;
     location = NULL;
     check = -1;
     In = new InFile();
-    Out = new std::ofstream();
+    Out = new std::fstream();
     reserve = "";
     chunked = -1;
     flag = false;
+    sum = 0;
+    timeout = false;
+    timing = clock();
+    id = -1;
+    currentdirec = "";
 }
 
 Client::Client(const Client &obj)
 {
-    std::cout << "copy constructor called\n";
     *this = obj;
 }
 
 Client& Client::operator=(const Client &obj)
 {
     for (int i = 0; i < 3; i++)
-    M_U_V[i] =  obj.M_U_V[i];
+        M_U_V[i] =  obj.M_U_V[i];
     readMore = obj.readMore;
+    currentdirec = obj.currentdirec;
+    Read = obj.Read;
     header =  obj.header;
     body =  obj.body;
     root =  obj.root;
@@ -34,80 +45,69 @@ Client& Client::operator=(const Client &obj)
     In =  obj.In;
     fd = obj.fd;
     check = obj.check;
+    flag = obj.flag;
     chunked = obj.chunked;
+    chunkSize = obj.chunkSize;
     Serv = obj.Serv;
     iN = NULL;
     reserve = obj.reserve;
-
+    location = obj.location;
+    sum = obj.sum;
+    timeout = obj.timeout;
+    timing = obj.timing;
+    PathCGI = obj.PathCGI;
+    id = obj.id;
+    filename = obj.filename;
+    count = obj.count;
+    query = obj.query;
+    T = obj.T;
+    startTime = obj.startTime;
+    argvv[0] = obj.argvv[0];
+    argvv[1] = obj.argvv[1];
+    for (int i = 0 ; i < 3;i++)
+        argv[i] = obj.argv[i];
+    envv = obj.envv;
+    PATH_INFO = obj.PATH_INFO;
+    AfterLoc = obj.AfterLoc;
+    request = obj.request;
+    uri = obj.uri;
+    dir = obj.dir;
     return *this;
 }
 
-Client::~Client()
+Client::~Client() 
 {
-    std::cout << "client destructor called \n";
+    
 }
-
-void Header(std::map<std::string, std::string> header, std::string FirstLine[3])
+void  Client ::getcurrentDirectory()
 {
-    std::cout << R + (std::string)"request:\n" + G << FirstLine[0] + "|" << FirstLine[1] + "|" << FirstLine[2] + "\n";
-    for (std::map<std::string , std::string>::iterator i = header.begin(); i != header.end(); i++)
-        std::cout << "|" << i->first << ":" << i->second << "|\n";
-    std::cout << "\33[0m\n";
+    char currentPath[PATH_MAX];
+    if (getcwd(currentPath, sizeof(currentPath)) != NULL)
+        currentdirec = currentPath;
 }
-
-void    Client::ServeError(const std::string &Error, const std::string &reason)
+void   Client::handleRequest(fd_set *Rd, fd_set *Wr)                                                                          //HandleRequest
 {
-    std::string res (M_U_V[2]);
-    if (!res.length())
-        res = "HTTP/1.0";
-    res +=" " + Error + reason + "Content-Type: txt/html\r\nContent-Length: "; 
-    In->open(Serv->errorPages[Error].c_str());
-    if (!In->is_open())
-    {
-        res +=  std::to_string(31 + Error.size()) + "\r\n\r\nError in opning error file nB:" + Error + "\n";
-        write(fd, res.c_str(), res.size());
-        throw std::runtime_error(Error);
-    }
-    std::string body((std::istreambuf_iterator<char>(*In)), std::istreambuf_iterator<char>());
-    int size = In->size();
-    In->read(buffer, size);
-    res += std::to_string(size) + "\r\n\r\n" + body;
-    write(fd, res.c_str(), res.length());
-    throw std::runtime_error(Error);
-}
-
-void    Client::DeleteMethod()
-{
-}
-
-void Signal(int j)
-{
-    (void)j;
-    ok = 0;
-}
-
-void   Client::handleRequest(fd_set *Rd, fd_set *Wr)
-{
+  
     std::string nBytes;
     std::string response;
-   
-    signal(SIGPIPE, Signal);
-    if (!ok)
+    getcurrentDirectory();
+    if (FD_ISSET(fd, Rd) || FD_ISSET(fd,Wr))
     {
-        ok = 1;
-        write(fd, (M_U_V[2] + " Ok 200\r\n\r\n").c_str(), M_U_V[2].size() + 10);
-        throw std::runtime_error("anvalide socket");
-    }
-    if (FD_ISSET(fd, Rd) || FD_ISSET(fd, Wr))
-    {
-        
+        Read = FD_ISSET(fd, Rd);
         if (readMore)
-            ReadMore();
-        else if (M_U_V[0] == "GET")
+        {
+            if (!FD_ISSET(fd, Rd) && (clock() - T) / CLOCKS_PER_SEC > 10)
+                ServeError("408", " Request Timeout\r\n");
+            else if(FD_ISSET(fd, Rd))
+                ReadMore();
+        }
+        else if (timeout)
+            handlCgi(filename, 1);
+        else if (M_U_V[0] == "GET" && FD_ISSET(fd, Wr))
             GetMethod();
         else if(M_U_V[0] == "POST")
             PostMethodfunc();
         else if (M_U_V[0] == "DELETE")
-            DeleteMethod();
+            DeleteMethod(M_U_V[1], 1);
     }
 }

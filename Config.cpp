@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/01 09:36:08 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/24 10:19:05 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/02/16 18:10:13 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 std::string Config:: ReadFile(std::string s)
 {
-        std::ifstream buffer(s);
+        std::ifstream buffer(s.c_str());
         std::stringstream configfile;
 
         if (!buffer.is_open())
@@ -46,12 +46,13 @@ std::string Config:: removeComent(std::string c)
     size_t pos = c.find('#');
     while(pos != std::string::npos)
     {
-        size_t end  = c.find('\n',pos + 1);
-        c.erase(pos,end);
+        size_t end  = c.find('\n',pos);
+        c.erase(pos,end - pos);
         pos = c.find('#');
     }
     return(c);
 }
+
 int findEndofBlock(const std::string& conf, int start)
  {
     int count = 0;
@@ -68,26 +69,20 @@ int findEndofBlock(const std::string& conf, int start)
     return -1;  
 }
 
-std::string affect(std::vector<std::string>::iterator it,std::vector<std::string>::iterator e)
-{
-            std::string ptr;
-            it++;
-            while(it != e && *it != ";")
-            {
-                ptr += *it;
-                it++;
-            }
-            return(ptr);
-}
-
 bool validIpAdress(std::string IpAdress)
 {
+    int nb;
     std::istringstream ss(IpAdress);
     std::string part;
     int count = 0;
+    if(IpAdress == "localhost")
+        return(true);
     while(std::getline(ss,part,'.'))
     {
-        int nb = std::stoi(part);
+        if (part.find_first_not_of("0123456789") != std::string::npos)
+            throw std::runtime_error("invalid ip address");
+        std::istringstream a(part);
+            a >> nb;
         if(nb < 0 || nb > 255)
             return false;
         count++;
@@ -97,137 +92,137 @@ bool validIpAdress(std::string IpAdress)
 
 bool validPort(std::string PortString)
 {
-    int nb = std::stoi(PortString);
+    int nb;
+    if (PortString.find_first_not_of("0123456789") != std::string::npos)
+        return (false);
+    std::istringstream a(PortString);
+    a >> nb;
     if(nb < 0 || nb >= 65535)
         return(false);
     else
         return(true); 
 }
 
-void parseListen(std::string content,Server& o)
+void Server:: parseListen(std::string content)
 {
     std::istringstream ss(content);
     std::string Ipadress;
+    std::string ip ="";
+    int p = -1;
     std::string PortString;
+    if(flaag == true)
+    {
+        ip = ipAdress;
+        p = port;  
+    }
+    
     std::getline(ss,Ipadress,':');
     std::getline(ss,PortString);
     if(!ss.fail() && validIpAdress(Ipadress) && validPort(PortString))
-    { 
-        o.port = std::stoi(PortString);
-        o.ipAdress = Ipadress;
+    {
+        if(Ipadress == "localhost")
+           ipAdress = "127.0.0.1";
+        else
+            ipAdress = Ipadress;
+        std::istringstream a(PortString);
+            a >> port;
+        flaag = true;
     }
     else if(ss.fail() || !validIpAdress(Ipadress) || !validPort(PortString))
         throw std::runtime_error("Error in listen directive");
+    if(ip != "" || p != -1)
+    {
+        if(p == port || ipAdress == ip)
+            throw std::runtime_error(" duplicate listen directive");
+    }
 }
 
-void defaultErrorPages(std::map<std::string,std::string>& map)
+void    Server:: defaultErrorPages()
 {
-    map["404"] = "/Users/kelmouto/Desktop/webserver/error_pages/404.html";
-    map["405"] = "/Users/kelmouto/Desktop/webserver/error_pages/405.html";
-    map["300"] = "/Users/kelmouto/Desktop/webserver/error_pages/300.html";
-    map["404"] = "/Users/kelmouto/Desktop/webserver/error_pages/404.html";
-    map["403"] = "/Users/kelmouto/Desktop/webserver/error_pages/403.html";
-    map["408"] = "/Users/kelmouto/Desktop/webserver/error_pages/408.html";
-    map["413"] = "/Users/kelmouto/Desktop/webserver/error_pages/413.html";
-    map["500"] = "/Users/kelmouto/Desktop/webserver/error_pages/500.html";
+    errorPages["400"] = "./error_pages/400.html";
+    errorPages["300"] = "./error_pages/300.html";
+    errorPages["204"] = "./error_pages/204.html";
+    errorPages["403"] = "./error_pages/403.html";
+    errorPages["404"] = "./error_pages/404.html";
+    errorPages["405"] = "./error_pages/405.html";
+    errorPages["408"] = "./error_pages/408.html";
+    errorPages["411"] = "./error_pages/411.html";
+    errorPages["413"] = "./error_pages/413.html";
+    errorPages["414"] = "./error_pages/414.html";
+    errorPages["500"] = "./error_pages/500.html";
+    errorPages["501"] = "./error_pages/501.html";
+    errorPages["502"] = "./error_pages/502.html";
+    errorPages["505"] = "./error_pages/505.html";
+    errorPages["504"] = "./error_pages/504.html";
+}
+
+void Config::checkServername(std::string& t)
+{
+    for (std::vector<Server>::iterator it = vectofServers.begin(); it != vectofServers.end(); ++it)
+    {
+        for (std::vector<std::string>::iterator ite = it->serverName.begin(); ite != it->serverName.end(); ++ite)
+        {
+            if (*ite == t)
+                throw std::runtime_error("Servername duplicated");
+        }
+    }
 }
 
 Server  Config::fillServervect(int start, int end, std::string conf)
 {
     Server o;
-    conf = o.parslocation(conf);
-    std::stringstream serverBlock (conf.substr(start + 1, end - start - 1));
-    std::vector<std::string> serverBlockLines;
-    std::string word;
-    while(serverBlock >> word)
-    {
-        if(word[word.length() - 1]== ';')
-        {
-            serverBlockLines.push_back(word.substr(0,word.length() - 1));
-            serverBlockLines.push_back(";");
-        }
-        else
-            serverBlockLines.push_back(word);
-    }
+    o.defaultErrorPages(); 
+    std::string s = conf.substr(start + 1, end - start - 2 );
+    s = o.parslocation(s);
+    std::vector<std::string> serverBlockLines =fillhelper(s);
     std::vector<std::string> ::iterator it = serverBlockLines.begin();
     for(;it != serverBlockLines.end();it++)
     {
+        o.fillTimeSizeClient(it,serverBlockLines.end());
+        o.fillErrIndexAllofunc(it,serverBlockLines.end());
         if(*it == "listen")
-            parseListen(*(++it),o);
+        {
+            if((it + 1 )!= serverBlockLines.end())
+                it++;
+            if(o.lflag)
+            {
+                o.lflag = false;
+                o.parseListen(*it);
+                it++;
+            }
+            else
+                throw std::runtime_error("listen directive is duplicate");
+            
+        }
         if(*it =="root") 
         {
-            it++;
-            if(*it != ";" && *(it + 1) == ";")
-                o.root = *it;
+            if(o.rodirective)
+            {
+                o.rodirective = false;
+                o.root = affect(it,serverBlockLines.end());
+                o.setupglobalroot(o.locations);
+            }
             else
-                throw std::runtime_error("Error rooot directive ");
-            o.setupglobalroot(o.locations);
+                throw std::runtime_error(" root directive duplicated");
+            
         }
         if(*it == "server_name")
         {
-            it++;
-            o.serverName.clear();
-            if(*it != ";" && *(it + 1) == ";")
-                o.serverName= *it;
-            else
-                throw std::runtime_error("Error servername directive ");
-        }
-        if(*it == "client_body_timeout")
-        {
-            it++;
-            if(*it != ";" && *(it + 1) == ";")
-                o.client_body_timeout = atoi((*(it)).c_str());
-            else
-                throw std::runtime_error("Error client_body_timeout directive ");
-        }
-        if(*it == "client_max_body_size")
-            o.client_max_body_size =atoi((*(++it)).c_str());
-        if(*it == "index")
-        {
-            it++;
-            o.index.clear();
+            if((it + 1 )!= serverBlockLines.end())
+                it++;
             while(*it != ";" && it != serverBlockLines.end())
             {
-                o.index.push_back(*it);
+                checkServername(*it);
+                o.serverName.push_back(*it);
                 it++;
             }
         }
-        if(*it == "autoindex")
-        {
-            it++;
-            if(*it == "off")
-                o.autoindex = false;
-            else if(*it == "on")
-                o.autoindex = true;
-        }
-        if(*it == "allow_methods")
-        {
-            it++;
-            while(it != serverBlockLines.end() && *it != ";" )
-            {
-                if(*it == "GET")
-                    o.allow_methods[*it] = true;
-                if(*it == "POST")
-                    o.allow_methods[*it] = true;
-                if(*it == "DELETE")
-                    o.allow_methods[*it] = true;
-                it++;
-            }
-        }
-        if(*it == "error_page")
-        {
-            it++;
-            while(*(it)!= ";" &&  (it + 1) != serverBlockLines.end())
-            {
-                o.errorPages.insert(std::make_pair((*it),*(it + 1)));
-                it+= 2;
-            }
-        }
+        if(*it != ";")
+                throw std::runtime_error("fausse directive");
     }
-    if(o.errorPages.empty())
-        defaultErrorPages(o.errorPages);
-    if(o.root == "" || o.port == -1 || o.ipAdress == "")
-        throw std::runtime_error("at least root and listen  should be setup");
+   
+    if(o.root == "")
+        throw std::runtime_error("at least root should be setup");
     return o;
 }
 
@@ -238,15 +233,15 @@ std::vector<Server>  Config:: splitServers(std::string conf,int nb)
     size_t i = 0;
     while (conf[i] && conf[i] != 's') 
     {
-        if (!isspace(conf[i])) 
+        if (!isspace(conf[i]) && conf[i] != '\n')
             throw std::runtime_error("error in input of configfile");
         i++;
     }
     std::string tmp;
     tmp = conf.substr(i,6);
-    if(tmp != "server" && nb > 0)
+    if(tmp == "\0" && nb > 0)
         return vectofServers;
-    else if(tmp != "server" && nb == 0)
+    else if(tmp != "server")
         throw std::runtime_error("bloc of server not found");
     i += 6;
     nb++;
@@ -260,8 +255,9 @@ std::vector<Server>  Config:: splitServers(std::string conf,int nb)
     int end = findEndofBlock(conf ,i + 1);
     if(end == - 1)
         throw std::runtime_error("error in { }");
-    vectofServers.push_back(fillServervect(start,end,conf));
-    if(conf.substr(end) != "\0")
+    Server ser = fillServervect(start,end + 1,conf);
+    vectofServers.push_back(ser);
+    if(conf.substr(end + 1) != "\0")
         splitServers(conf.substr(end + 1),nb);
     return vectofServers;
 }

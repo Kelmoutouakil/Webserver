@@ -6,7 +6,7 @@
 /*   By: kelmouto <kelmouto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/01 09:31:04 by kelmouto          #+#    #+#             */
-/*   Updated: 2024/01/10 09:20:53 by kelmouto         ###   ########.fr       */
+/*   Updated: 2024/01/29 10:56:45 by kelmouto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include<string>
 #include<fstream>
 #include<vector>
+#include<exception>
 
 class Server;
 class Config
@@ -32,11 +33,7 @@ class Config
         std::string  removeComent(std::string c);
         Server fillServervect(int start, int end, std::string conf);
         std::vector<Server> splitServers(std::string conf,int nb);
+        void checkServername(std::string& t);
+       
 };
-
-
-
-
-
-
 #endif

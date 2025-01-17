@@ -1,6 +1,6 @@
 CC = c++
 NAME = webserv
-CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g
+CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address
 HEADER =$(wildcard *.hpp)
 OBJF = obj
 OBJ = $(patsubst %.cpp, $(OBJF)/%.o, $(wildcard *.cpp))
@@ -10,7 +10,6 @@ all: $(NAME)
 $(NAME): $(OBJF) $(OBJ) $(HEADER) 
 	$(CC) $(CPPFLAGS) $(OBJ) -o $(NAME)
 
-#%.o:%.cpp
 $(OBJF)/%.o:%.cpp
 	$(CC) $(CPPFLAGS) -c -o $@ $<
 $(OBJF):
